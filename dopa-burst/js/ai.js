@@ -60,7 +60,7 @@ const AI = {
           const ok = await this.sim(B, g, () => B.playCard(pi, c.card.uid, this.mapTarget(c.tgt, g)));
           nodes++;
           if (!ok) continue;
-          const score = g.over ? (g.winner === pi ? 1e7 : -1e7) : await this.evalEnd(B, g, pi);
+          const score = g.over ? this.terminal(B, g, pi, 2) : await this.evalEnd(B, g, pi);
           const n = { G: g, actions: [...node.actions, c], score };
           next.push(n);
           if (score > best.score + 1) best = n;
@@ -88,8 +88,14 @@ const AI = {
       }
       await B.attackPhase(1 - pi);
     });
-    if (g.over) return g.winner === pi ? 1e7 : -1e7;
+    if (g.over) return this.terminal(B, g, pi, 1);
     return this.withG(B, g, () => this.evaluate(B, g, pi));
+  },
+  // 決着がつく局面の点数。勝ち負けが同じでも差がつくように盤面の評価を足す
+  // （全部が同じ点数だと「どう打っても負け」で投げてしまい、何もしなくなる）
+  terminal(B, G, pi, speed) {
+    const base = G.winner === pi ? 1e6 * (1 + speed) : -1e6 * 4;
+    return base + this.withG(B, G, () => this.evaluate(B, G, pi));
   },
 
   // 評価の重み（AI同士を大量に戦わせて調整した値）
