@@ -3,7 +3,7 @@
 脳汁全開のフィールドカードバトル。ブラウザだけで遊べます（インストール不要・外部ライブラリなし）。
 
 ## 遊ぶ
-- **GitHub Pages**（有効にした場合）：https://nakanaka0318.github.io/-/
+- **GitHub Pages**（有効にした場合）：https://nakanaka0318.github.io/dopacard/
 - **ファイルを直接開く**：`dopa-burst/dist/dopa-burst.html` をダウンロードしてブラウザで開く（1ファイル完結）
 
 ### GitHub Pages の有効化（最初の1回だけ）
