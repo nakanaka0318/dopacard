@@ -335,7 +335,11 @@ const BUI = {
         const slot = this.slotEl(0, a.u.lane);
         let txt, cls = '';
         if (a.frozen) { txt = '❄ 休み'; cls = 'ice'; }
-        else if (a.idle) { if (!a.u.count) continue; txt = `⏳あと${a.u.count}`; cls = 'idle'; }
+        else if (a.idle) {
+          if (a.u.count) { txt = `⏳あと${a.u.count}`; cls = 'idle'; }
+          else if (a.u.def.onPreAttack) { txt = a.u.def.id === 'mi_egg' ? '⚡孵化→攻撃' : '⚡アタック前'; cls = 'kill'; }
+          else continue;
+        }
         else if (a.unsure) { txt = '⚔ ?'; }
         else if (a.hero) { txt = `⚔直撃${a.dmg}`; cls = 'face'; }
         else if (a.block) { txt = '⚔🛡'; }
@@ -351,7 +355,8 @@ const BUI = {
       for (const [uid, d] of taken) {
         const u = G.P[1].board.find(x => x && x.uid === uid);
         if (!u) continue;
-        this.slotEl(1, u.lane).appendChild(el('div', `pred theirs ${me.killed.has(uid) ? 'kill' : ''}`, me.killed.has(uid) ? '💀撃破' : `-${d}`));
+        const burst = me.killed.has(uid) && u.count > 0 && u.def.onCountdown;
+        this.slotEl(1, u.lane).appendChild(el('div', `pred theirs ${me.killed.has(uid) ? 'kill' : ''}`, burst ? '💀撃破→⏳発動' : me.killed.has(uid) ? '💀撃破' : `-${d}`));
       }
       // HPバーに予想ダメージ（敵：このターン／自分：次の相手ターン）
       const opp = B.predictAttacks(1, me.killed);
@@ -1275,6 +1280,15 @@ const View = {
     BUI.tip('countdown', '⏳ <b>カウント</b>：自分のターンが来るたびに1減って、<b>0で効果が発動</b>！');
     return wait(160);
   },
+  async countBurst(u) {
+    const p = BUI.posOf(u);
+    Sound.play('reach');
+    FX.ring(p.x, p.y, { color: '#e0a96d', size: 10, grow: 12, width: 6 });
+    FX.popText(p.x, p.y - 30, '倒されても⏳発動!!', 'pop-merge', { size: 22 });
+    BUI.log('⏳', `${esc(u.def.name)}が倒されたので、その場で発動！`);
+    BUI.tip('countburst', '⏳ <b>カウント</b>のユニットは、途中で倒されても<b>その場で効果が発動</b>する！');
+    return wait(350);
+  },
   async payHp(pi, n) {
     const h = BUI.heroEl(pi), p = centerOf(h);
     Sound.play('dark');
@@ -1360,8 +1374,14 @@ const View = {
     animate(chip, [{ transform: 'scale(1)' }, { transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 300 });
     return wait(150);
   },
-  async trigger(u) {
+  async trigger(u, kind) {
     const e = BUI.unitEls.get(u.uid);
+    if (kind === 'pre') {
+      const p = BUI.posOf(u);
+      FX.popText(p.x, p.y - 30, '⚡アタック前', 'pop-label', { color: '#ffd23f', dx: 0 });
+      BUI.log('⚡', `アタック前：${esc(u.def.name)}の効果`);
+      BUI.tip('preattack', '⚡ <b>アタック前</b>の効果：アタックを押すと、攻撃の直前に<b>毎ターン</b>発動する（出したターンから！）');
+    }
     if (e) await animate(e, [{ filter: 'brightness(1)' }, { filter: 'brightness(2) drop-shadow(0 0 10px var(--tc))' }, { filter: 'brightness(1)' }], { duration: 300 });
   },
   async passive(pi, pas) {

@@ -241,6 +241,12 @@ const B = {
     await this.V('status', u, 'burn');
   },
   async freeze(u) { if (!this.alive(u)) return; u.frozen = true; await this.V('status', u, 'frozen'); },
+  // 自分のターン中なら今すぐ、相手のターン中なら次の自分のターン開始時にPPを足す
+  async gainEnergySoon(pi, n) {
+    if (this.G.active === pi) return this.gainEnergy(pi, n);
+    this.G.P[pi].nextEnergy = (this.G.P[pi].nextEnergy || 0) + n;
+    await this.V('say', pi, `次のターンPP+${n}`, '#2ee6ff');
+  },
   async gainEnergy(pi, n) { const P = this.G.P[pi]; P.energy = Math.min(P.energy + n, 15); await this.V('energy', pi, n); },
   addFever(pi, n) {
     const P = this.G.P[pi];
@@ -284,7 +290,7 @@ const B = {
     u.star++;
     u.atk += def.atk; u.maxHp += def.hp; u.hp = u.maxHp;
     u.burn = 0; u.frozen = false;
-    if (def.countdown && u.count <= 0) u.count = def.countdown; // 発動済みのカウントは合体で再セット
+    if (def.countdown && u.count <= 0) { u.count = def.countdown; u.countFired = false; } // 発動済みのカウントは合体で再セット
     const awaken = u.star === 3;
     if (awaken) { u.atk += 10; u.maxHp += 10; u.hp = u.maxHp; u.shield = true; this.G.stats[u.owner].star3++; }
     this.G.stats[u.owner].merges++;
@@ -329,6 +335,12 @@ const B = {
           const killer = u.lastHitBy;
           if (killer && this.alive(killer) && killer.def.onKill) await killer.def.onKill(this, killer, u);
         }
+        // カウント中に倒されたら、残りカウントに関係なくその場で発動
+        if (u.count > 0 && u.def.onCountdown && !u.countFired) {
+          u.countFired = true; u.count = 0;
+          await this.V('countBurst', u);
+          await u.def.onCountdown(this, u);
+        }
         if (u.def.onDeath) await u.def.onDeath(this, u);
         const f = G.field;
         if (f && f.def.fieldDeath) await f.def.fieldDeath(this, u, f.owner);
@@ -341,7 +353,7 @@ const B = {
     if (!this.alive(u) || u.count <= 0) return;
     u.count--;
     await this.V('countTick', u);
-    if (u.count === 0 && u.def.onCountdown) await u.def.onCountdown(this, u);
+    if (u.count === 0 && u.def.onCountdown && !u.countFired) { u.countFired = true; await u.def.onCountdown(this, u); }
   },
   // 自分の空きマスを探す（open=正面に敵がいないマスを優先）
   freeLane(pi, near, preferOpen) {
@@ -392,7 +404,7 @@ const B = {
     Object.assign(u, {
       id, def, atk: def.atk, hp: def.hp, maxHp: def.hp, star: 1,
       kw: new Set(def.kw.filter(k => k !== 'shield')), shield: def.kw.includes('shield'),
-      burn: 0, frozen: false, token: !!def.token, count: def.countdown || 0,
+      burn: 0, frozen: false, token: !!def.token, count: def.countdown || 0, countFired: false,
     });
     await this.V('transform', u, old, opts);
   },
@@ -488,7 +500,8 @@ const B = {
     if (pi === 0) G.round++;
     P.critBonus = 0;
     P.maxEnergy = Math.min(10, P.maxEnergy + 1);
-    P.energy = P.maxEnergy + P.energyBonus;
+    P.energy = P.maxEnergy + P.energyBonus + (P.nextEnergy || 0);
+    P.nextEnergy = 0;
     await this.V('turnStart', pi, G.round);
     if (G.round >= 16 && pi === 0) {
       const d = (G.round - 15) * 10;
@@ -521,6 +534,13 @@ const B = {
 
   async endTurn(pi) {
     const G = this.G;
+    // アタック前の効果：攻撃の直前に毎ターン発動（出したターンから）
+    for (const u of this.units(pi)) {
+      if (!this.alive(u) || !u.def.onPreAttack) continue;
+      await this.V('trigger', u, 'pre');
+      await u.def.onPreAttack(this, u);
+      await this.processDeaths();
+    }
     await this.attackPhase(pi);
     const st = G.stats[pi];
     st.maxTurnDamage = Math.max(st.maxTurnDamage, G.turnDamage);

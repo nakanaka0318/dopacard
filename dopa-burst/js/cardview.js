@@ -101,6 +101,7 @@ function detailHTML(def, u) {
     if (st.length) body += `<div class="dt-kws">${st.join('')}</div>`;
   }
   if (!u && def.countdown) body += `<div class="dt-kws"><span><b>⏳カウント</b> ${STATUS_INFO.count.replace(/^.+?：/, '')}</span></div>`;
+  if (def.onPreAttack) body += `<div class="dt-kws"><span><b>⚡アタック前</b> ${STATUS_INFO.preAttack.replace(/^.+?：/, '')}</span></div>`;
   if (def.hpCost) body += `<div class="dt-kws"><span><b>♥HPコスト</b> ${STATUS_INFO.hpCost.replace(/^.+?：/, '')}</span></div>`;
   if (!body) body = `<div class="dt-text dt-flavor">${esc(def.text || '特殊効果なし')}</div>`;
   return `<div class="dt-head">${head}</div>${body}`;

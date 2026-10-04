@@ -176,7 +176,7 @@ const UI = {
         <section><h3>🗺 フィールド</h3><p>フィールドカードを出すと、場全体のルールが変わる。新しいフィールドを出すと上書き。</p></section>
         <section><h3>🎰 リーチ</h3><p>アタックすれば倒せそうな時、相手ヒーローに「リーチ!」が光る。</p></section>
         <section><h3>🔰 バトル中のサポート</h3><p><b>⚔数字</b>：ユニットの下に、アタックした時の予想ダメージ（「撃破!」「直撃」も表示）。HPバーの斑点は受けそうなダメージ。<br><b>💡ヒント</b>：ドパ美がおすすめの1手と理由を教えてくれる（迷って止まると自動でも出る）。<br><b>📜ログ</b>：何が起きたかを文章で確認できる。<br>初めて起きたことは、上に<b>ルール解説</b>が出る。</p></section>
-        <section><h3>🧭 未知なる軸（新属性）</h3><div class="kw-list">${TRIBE_ORDER.filter(t => TRIBES[t].axis).map(t => `<div><b>${TRIBES[t].icon}${TRIBES[t].name}</b>${TRIBES[t].desc}</div>`).join('')}<div><b>⏳カウント</b>${STATUS_INFO.count.replace('カウント：', '')}</div><div><b>♥HPコスト</b>${STATUS_INFO.hpCost.replace('HPコスト：', '')}</div></div></section>
+        <section><h3>🧭 未知なる軸（新属性）</h3><div class="kw-list">${TRIBE_ORDER.filter(t => TRIBES[t].axis).map(t => `<div><b>${TRIBES[t].icon}${TRIBES[t].name}</b>${TRIBES[t].desc}</div>`).join('')}<div><b>⏳カウント</b>${STATUS_INFO.count.replace('カウント：', '')}</div><div><b>⚡アタック前</b>${STATUS_INFO.preAttack.replace('アタック前：', '')}</div><div><b>♥HPコスト</b>${STATUS_INFO.hpCost.replace('HPコスト：', '')}</div></div></section>
         <section><h3>📚 キーワード</h3><div class="kw-list">${Object.values(KW).map(k => `<div><b>${k.icon}${k.name}</b>${k.desc}</div>`).join('')}<div><b>🔥炎上</b>${STATUS_INFO.burn.replace('炎上：', '')}</div><div><b>❄️凍結</b>${STATUS_INFO.frozen.replace('凍結：', '')}</div></div></section>
       </div>
       <button class="btn" type="button" data-close>OK！</button>`, { cls: 'wide' }).querySelector('[data-close]').addEventListener('click', () => Modal.close());

@@ -113,8 +113,8 @@ const AI = {
     if (B.hasKw(u, 'fly')) v += 15;
     if (u.shield) v += 20;
     if (u.kw.has('undying') && !u.revived) v += 25;
-    if (u.def.onTurnStart) v += 25;
-    if (u.count > 0 && u.def.onCountdown) v += 60 / u.count;
+    if (u.def.onTurnStart || u.def.onPreAttack) v += 25;
+    if (u.count > 0 && u.def.onCountdown) v += 40 + 40 / u.count; // 倒されても発動するので確実な価値
     if (u.frozen) v -= a * 0.5;
     if (u.burn) v -= u.burn * 10;
     return v + (u.star - 1) * 15;
@@ -182,7 +182,7 @@ const AI = {
     let v = (B.atkOf(u) + u.hp) / 10;
     if (u.kw.has('double')) v += B.atkOf(u) / 10;
     if (u.kw.has('fly')) v += 1;
-    if (u.def.onTurnStart) v += 2;
+    if (u.def.onTurnStart || u.def.onPreAttack) v += 2;
     if (u.shield) v += 1;
     return v + u.star;
   },
@@ -234,7 +234,7 @@ const AI = {
       const atk = def.atk + (G.field && G.field.def.fieldAtk ? G.field.def.fieldAtk(B, { owner: pi }, G.field.owner) : 0);
       s = (def.atk + def.hp) / 10 * 0.6 + def.cost * 0.55;
       if (def.onPlay) s += def.cost * 0.6;
-      if (def.onTurnStart) s += 2;
+      if (def.onTurnStart || def.onPreAttack) s += 3;
       const o = E.board[t.lane];
       const fly = def.kw.includes('fly');
       if (fly || !B.alive(o)) {
