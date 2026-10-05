@@ -17,13 +17,19 @@ const AI = {
     const P = B.P(pi);
     const prof = this.profile(P.ai);
     await wait(280);
-    if (B.canFever(pi)) await B.activateFever(pi);
-    for (let guard = 0; guard < 16; guard++) {
+    for (let guard = 0; guard < 18; guard++) {
       if (B.G.over) return;
       let step = null, plan = null;
       if (prof.mistake && R.chance(prof.mistake)) step = this.sloppyPick(B, pi); // 弱い敵は時々うっかりする
       else if (prof.depth <= 0) step = this.greedyPick(B, pi);
-      else { plan = await this.plan(B, pi, prof); step = plan.actions[0]; }
+      else plan = await this.plan(B, pi, prof);
+      // FEVER：使うとPP+3。今使った方が得なら使う（出せるカードが増えない時は取っておく）
+      if (B.canFever(pi) && await this.wantFever(B, pi, prof, plan, step)) {
+        await B.activateFever(pi);
+        await wait(200);
+        continue;
+      }
+      if (plan) step = plan.actions[0];
       if (!step) break;
       if (plan) B.V('aiThink', pi, plan);
       await wait(240);
@@ -45,9 +51,32 @@ const AI = {
     return good.length ? R.pick(good.slice(0, 4)) : null;
   },
 
+  /* ---------- FEVERの使いどころ ---------- */
+  async wantFever(B, pi, prof, plan, step) {
+    if (plan) {
+      // 先読みできる敵は「FEVERを使ってから打った場合」も読んで、点数が上がるなら使う
+      const fp = await this.feverPlan(B, pi, prof);
+      return fp.actions.length > 0 && fp.score > plan.score + 1;
+    }
+    // 先読みしない時：今は高くて出せないカードが、PP+3で出せるようになるなら使う
+    return this.feverUnlocks(B, pi) || (!step && this.feverUnlocks(B, pi, true));
+  },
+  async feverPlan(B, pi, prof) {
+    const g = this.clone(B.G);
+    if (!(await this.sim(B, g, () => B.activateFever(pi)))) return { actions: [], score: -Infinity };
+    return this.plan(B, pi, prof, g);
+  },
+  feverUnlocks(B, pi, any) {
+    const P = B.P(pi);
+    const now = new Set(P.hand.filter(c => B.canPlay(pi, c)).map(c => c.uid));
+    P.energy += 3;
+    try { return P.hand.some(c => (any || !now.has(c.uid)) && B.canPlay(pi, c) && this.options(B, pi).some(o => o.card.uid === c.uid && o.score > 0.8)); }
+    finally { P.energy -= 3; }
+  },
+
   /* ---------- 先読み ---------- */
-  async plan(B, pi, prof) {
-    const root = this.clone(B.G, true);
+  async plan(B, pi, prof, base) {
+    const root = this.clone(base || B.G, true);
     let best = { actions: [], score: await this.evalEnd(B, root, pi) };
     let beam = [{ G: root, actions: [] }];
     let nodes = 0;

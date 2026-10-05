@@ -298,8 +298,16 @@ const BUI = {
     fb.classList.toggle('ready', P.fever >= 100 && !P.feverOn);
     fb.classList.toggle('on', P.feverOn);
     fb.disabled = !ready;
-    const ef = $('.e-fever i', this.root);
-    if (ef) ef.style.width = E.fever + '%';
+    const ef = $('.e-fever', this.root);
+    if (ef) {
+      ef.querySelector('i').style.width = (E.feverOn ? 100 : E.fever) + '%';
+      ef.classList.toggle('ready', E.fever >= 100 && !E.feverOn);
+      ef.classList.toggle('on', !!E.feverOn);
+      const lb = E.feverOn ? 'FEVER中' : E.fever >= 100 ? 'READY!' : 'FEVER';
+      const sp = ef.querySelector('span');
+      if (sp.textContent !== lb) sp.textContent = lb;
+      ef.title = `相手のFEVERゲージ ${Math.floor(E.fever)}%（満タンになると相手もPP+3を使える）`;
+    }
     // ターンボタン
     const myTurn = G.active === 0 && !G.over;
     const eb = $('.end-btn', this.root);
@@ -394,14 +402,25 @@ const BUI = {
     $$('.hint-t', this.root).forEach(x => x.classList.remove('hint-t'));
     // ドパ美も敵と同じ先読みで考える（2手先まで、相手の反撃込み）
     this.thinking = true;
-    let plan;
-    try { plan = await AI.plan(B, 0, { depth: 2, beam: 3, width: 8 }); } finally { this.thinking = false; }
+    let plan, fp = null;
+    const prof = { depth: 2, beam: 3, width: 8 };
+    try {
+      plan = await AI.plan(B, 0, prof);
+      if (B.canFever(0)) fp = await AI.feverPlan(B, 0, prof); // FEVERを使った場合も読んで比べる
+    } finally { this.thinking = false; }
     if (!this.canAct()) return;
     const best = plan.actions[0] || null;
     Sound.play(auto ? 'tap' : 'select');
+    if (fp && fp.actions.length && fp.score > plan.score + 1) {
+      const nm = fp.actions.map(x => esc(CARDS[x.card.id].name)).join(' → ');
+      this.strip(`<div class="dt-hint">💡 ドパ美のおすすめ</div>🔥 今が<b>FEVER</b>の使いどき！ PP+3で <b>${nm}</b> まで出せる`);
+      $('.fever-btn', this.root).classList.add('hint-t');
+      return;
+    }
     if (!best) {
-      if (B.canFever(0)) { this.strip('<div class="dt-hint">💡 ドパ美のおすすめ</div>🔥 <b>FEVER</b>ボタンでPPを3回復しよう！'); $('.fever-btn', this.root).classList.add('hint-t'); }
-      else { this.strip('<div class="dt-hint">💡 ドパ美のおすすめ</div>もう出せる良いカードはないよ！ <b>⚔アタック!</b>で攻撃しよう'); $('.end-btn', this.root).classList.add('hint-t'); }
+      const keep = B.canFever(0) ? '（FEVERは出したいカードがある時まで取っておこう）' : '';
+      this.strip(`<div class="dt-hint">💡 ドパ美のおすすめ</div>もう出せる良いカードはないよ！ <b>⚔アタック!</b>で攻撃しよう${keep}`);
+      $('.end-btn', this.root).classList.add('hint-t');
       return;
     }
     this.select(best.card.uid, true);
@@ -1329,6 +1348,8 @@ const View = {
       FX.burst(c.x, c.y, { count: 30, colors: ['#ff3d8b', '#ffd23f'], speed: 6, type: 'star' });
     } else {
       FX.toast('⚠ 相手のFEVERゲージが満タン！', { cls: 'warn' });
+      BUI.log('⚠', '相手のFEVERゲージが満タン（次のターンにPP+3で大量展開してくるかも）');
+      BUI.tip('efever', '⚠ <b>相手のFEVER</b>：相手もゲージが満タンになると<b>PP+3</b>でカードを多く出してくる。右上のゲージに注意！');
     }
     BUI.sync();
   },
@@ -1347,6 +1368,7 @@ const View = {
         FX.confetti(90);
         await FX.banner('FEVER TIME!!', { cls: 'b-fever', sub: 'PPが3回復！ カードをもっと出せる！', dur: 1300 });
       } else {
+        BUI.sync();
         FX.flash('#ff2244', 0.3, 300);
         await FX.banner('ENEMY FEVER!!', { cls: 'b-fever enemy', sub: '相手のPPが3回復！', dur: 1100 });
       }

@@ -43,7 +43,7 @@ const B = {
       deck: R.shuffle(c.deck).map(id => ({ uid: this._uid++, id })),
       hand: [], discard: [], grave: [],
       board: new Array(LANES).fill(null),
-      fever: 0, feverOn: false, feverEnabled: c.fever !== false,
+      fever: 0, feverOn: false, feverEnabled: c.fever !== false, feverRate: c.feverRate ?? 1,
       critBonus: 0, extraCrit: c.extraCrit || 0,
       passive: c.passive || null, isAI: !!c.isAI, ai: c.ai || {},
       heroRef: { isHero: true, owner: idx },
@@ -252,7 +252,7 @@ const B = {
     const P = this.G.P[pi];
     if (!P.feverEnabled || P.feverOn || n <= 0) return;
     const was = P.fever;
-    P.fever = Math.min(100, P.fever + n * 1.4); // PP回復だけになったぶん、溜まりやすくしてある
+    P.fever = Math.min(100, P.fever + n * 1.4 * P.feverRate); // PP回復だけになったぶん、溜まりやすくしてある
     if (was < 100 && P.fever >= 100) this.V('feverReady', pi);
     this.V('feverGauge', pi);
   },

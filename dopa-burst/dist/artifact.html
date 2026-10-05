@@ -250,6 +250,12 @@ body.fever-on #app {
 @keyframes reachBlink { 50% { filter: brightness(1.5); } }
 .e-fever { width: 54px; display: flex; flex-direction: column; gap: 2px; align-items: center; font: 400 9px/1 var(--f-num); color: #ff9ab5; }
 .e-fever i { display: block; height: 6px; width: 0; max-width: 54px; border-radius: 9px; background: linear-gradient(90deg, #ff3d8b, #ffd23f); align-self: flex-start; }
+.e-fever { padding: 3px 0; border-radius: 8px; transition: box-shadow .3s; }
+.e-fever i { transition: width .3s; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15); }
+.e-fever.ready { color: #ffd23f; animation: eFeverReady .5s ease-in-out infinite alternate; }
+.e-fever.ready i, .e-fever.on i { box-shadow: 0 0 8px #ff3d8b, 0 0 14px #ffd23f; }
+.e-fever.on { color: #fff; box-shadow: 0 0 0 2px #ff2244, 0 0 14px #ff2244; }
+@keyframes eFeverReady { to { transform: scale(1.1); filter: brightness(1.3); } }
 .b-tools { display: flex; gap: 6px; flex: none; }
 .b-tools button { height: 36px; min-width: 36px; padding: 0 10px; border-radius: 12px; background: var(--plum); box-shadow: 0 3px 0 #0e0a26, inset 0 0 0 2px var(--line); font: 400 12px/1 var(--f-num); }
 
@@ -2529,7 +2535,7 @@ const B = {
       deck: R.shuffle(c.deck).map(id => ({ uid: this._uid++, id })),
       hand: [], discard: [], grave: [],
       board: new Array(LANES).fill(null),
-      fever: 0, feverOn: false, feverEnabled: c.fever !== false,
+      fever: 0, feverOn: false, feverEnabled: c.fever !== false, feverRate: c.feverRate ?? 1,
       critBonus: 0, extraCrit: c.extraCrit || 0,
       passive: c.passive || null, isAI: !!c.isAI, ai: c.ai || {},
       heroRef: { isHero: true, owner: idx },
@@ -2738,7 +2744,7 @@ const B = {
     const P = this.G.P[pi];
     if (!P.feverEnabled || P.feverOn || n <= 0) return;
     const was = P.fever;
-    P.fever = Math.min(100, P.fever + n * 1.4); // PP回復だけになったぶん、溜まりやすくしてある
+    P.fever = Math.min(100, P.fever + n * 1.4 * P.feverRate); // PP回復だけになったぶん、溜まりやすくしてある
     if (was < 100 && P.fever >= 100) this.V('feverReady', pi);
     this.V('feverGauge', pi);
   },
@@ -3271,13 +3277,19 @@ const AI = {
     const P = B.P(pi);
     const prof = this.profile(P.ai);
     await wait(280);
-    if (B.canFever(pi)) await B.activateFever(pi);
-    for (let guard = 0; guard < 16; guard++) {
+    for (let guard = 0; guard < 18; guard++) {
       if (B.G.over) return;
       let step = null, plan = null;
       if (prof.mistake && R.chance(prof.mistake)) step = this.sloppyPick(B, pi); // 弱い敵は時々うっかりする
       else if (prof.depth <= 0) step = this.greedyPick(B, pi);
-      else { plan = await this.plan(B, pi, prof); step = plan.actions[0]; }
+      else plan = await this.plan(B, pi, prof);
+      // FEVER：使うとPP+3。今使った方が得なら使う（出せるカードが増えない時は取っておく）
+      if (B.canFever(pi) && await this.wantFever(B, pi, prof, plan, step)) {
+        await B.activateFever(pi);
+        await wait(200);
+        continue;
+      }
+      if (plan) step = plan.actions[0];
       if (!step) break;
       if (plan) B.V('aiThink', pi, plan);
       await wait(240);
@@ -3299,9 +3311,32 @@ const AI = {
     return good.length ? R.pick(good.slice(0, 4)) : null;
   },
 
+  /* ---------- FEVERの使いどころ ---------- */
+  async wantFever(B, pi, prof, plan, step) {
+    if (plan) {
+      // 先読みできる敵は「FEVERを使ってから打った場合」も読んで、点数が上がるなら使う
+      const fp = await this.feverPlan(B, pi, prof);
+      return fp.actions.length > 0 && fp.score > plan.score + 1;
+    }
+    // 先読みしない時：今は高くて出せないカードが、PP+3で出せるようになるなら使う
+    return this.feverUnlocks(B, pi) || (!step && this.feverUnlocks(B, pi, true));
+  },
+  async feverPlan(B, pi, prof) {
+    const g = this.clone(B.G);
+    if (!(await this.sim(B, g, () => B.activateFever(pi)))) return { actions: [], score: -Infinity };
+    return this.plan(B, pi, prof, g);
+  },
+  feverUnlocks(B, pi, any) {
+    const P = B.P(pi);
+    const now = new Set(P.hand.filter(c => B.canPlay(pi, c)).map(c => c.uid));
+    P.energy += 3;
+    try { return P.hand.some(c => (any || !now.has(c.uid)) && B.canPlay(pi, c) && this.options(B, pi).some(o => o.card.uid === c.uid && o.score > 0.8)); }
+    finally { P.energy -= 3; }
+  },
+
   /* ---------- 先読み ---------- */
-  async plan(B, pi, prof) {
-    const root = this.clone(B.G, true);
+  async plan(B, pi, prof, base) {
+    const root = this.clone(base || B.G, true);
     let best = { actions: [], score: await this.evalEnd(B, root, pi) };
     let beam = [{ G: root, actions: [] }];
     let nodes = 0;
@@ -3703,7 +3738,7 @@ function stageConfig(stageId) {
     name: s.name, avatar: s.avatar, hp: s.hp, isAI: true,
     deck: s.deck ? s.deck.slice() : makeDeck(s.tribes, s.level, hashStr(s.id)),
     ai: { mistake: s.mistake || 0, depth: s.boss ? 3 : s.level <= 1 ? 1 : s.level <= 4 ? 2 : 3 },
-    passive: p, field: s.field || null, fever: !!s.fever,
+    passive: p, field: s.field || null, fever: true, feverRate: s.fever ? 1 : Math.min(0.9, 0.35 + s.level * 0.06), // 敵のFEVERゲージは低レベルほど溜まりにくい
     energyBonus: s.energyBonus || 0, extraCrit: s.extraCrit || 0,
   };
 }
@@ -3735,7 +3770,7 @@ function rivalConfig(rp) {
     name: R.pick(RIVAL_NAMES), avatar: R.pick(RIVAL_AVATARS), hp: 260 + r.idx * 40, isAI: true,
     deck: makeDeck(tribes, Math.round(level), Math.floor(R.next() * 1e9)),
     ai: { mistake: Math.max(0, 0.35 - r.idx * 0.07), depth: r.idx <= 1 ? 1 : r.idx <= 3 ? 2 : 3 },
-    passive: null, field: null, fever: r.idx >= 4, energyBonus: 0, extraCrit: 0,
+    passive: null, field: null, fever: true, feverRate: Math.min(1, 0.45 + r.idx * 0.09), energyBonus: 0, extraCrit: 0,
     tribes, rankIdx: r.idx,
   };
 }
@@ -4447,8 +4482,16 @@ const BUI = {
     fb.classList.toggle('ready', P.fever >= 100 && !P.feverOn);
     fb.classList.toggle('on', P.feverOn);
     fb.disabled = !ready;
-    const ef = $('.e-fever i', this.root);
-    if (ef) ef.style.width = E.fever + '%';
+    const ef = $('.e-fever', this.root);
+    if (ef) {
+      ef.querySelector('i').style.width = (E.feverOn ? 100 : E.fever) + '%';
+      ef.classList.toggle('ready', E.fever >= 100 && !E.feverOn);
+      ef.classList.toggle('on', !!E.feverOn);
+      const lb = E.feverOn ? 'FEVER中' : E.fever >= 100 ? 'READY!' : 'FEVER';
+      const sp = ef.querySelector('span');
+      if (sp.textContent !== lb) sp.textContent = lb;
+      ef.title = `相手のFEVERゲージ ${Math.floor(E.fever)}%（満タンになると相手もPP+3を使える）`;
+    }
     // ターンボタン
     const myTurn = G.active === 0 && !G.over;
     const eb = $('.end-btn', this.root);
@@ -4543,14 +4586,25 @@ const BUI = {
     $$('.hint-t', this.root).forEach(x => x.classList.remove('hint-t'));
     // ドパ美も敵と同じ先読みで考える（2手先まで、相手の反撃込み）
     this.thinking = true;
-    let plan;
-    try { plan = await AI.plan(B, 0, { depth: 2, beam: 3, width: 8 }); } finally { this.thinking = false; }
+    let plan, fp = null;
+    const prof = { depth: 2, beam: 3, width: 8 };
+    try {
+      plan = await AI.plan(B, 0, prof);
+      if (B.canFever(0)) fp = await AI.feverPlan(B, 0, prof); // FEVERを使った場合も読んで比べる
+    } finally { this.thinking = false; }
     if (!this.canAct()) return;
     const best = plan.actions[0] || null;
     Sound.play(auto ? 'tap' : 'select');
+    if (fp && fp.actions.length && fp.score > plan.score + 1) {
+      const nm = fp.actions.map(x => esc(CARDS[x.card.id].name)).join(' → ');
+      this.strip(`<div class="dt-hint">💡 ドパ美のおすすめ</div>🔥 今が<b>FEVER</b>の使いどき！ PP+3で <b>${nm}</b> まで出せる`);
+      $('.fever-btn', this.root).classList.add('hint-t');
+      return;
+    }
     if (!best) {
-      if (B.canFever(0)) { this.strip('<div class="dt-hint">💡 ドパ美のおすすめ</div>🔥 <b>FEVER</b>ボタンでPPを3回復しよう！'); $('.fever-btn', this.root).classList.add('hint-t'); }
-      else { this.strip('<div class="dt-hint">💡 ドパ美のおすすめ</div>もう出せる良いカードはないよ！ <b>⚔アタック!</b>で攻撃しよう'); $('.end-btn', this.root).classList.add('hint-t'); }
+      const keep = B.canFever(0) ? '（FEVERは出したいカードがある時まで取っておこう）' : '';
+      this.strip(`<div class="dt-hint">💡 ドパ美のおすすめ</div>もう出せる良いカードはないよ！ <b>⚔アタック!</b>で攻撃しよう${keep}`);
+      $('.end-btn', this.root).classList.add('hint-t');
       return;
     }
     this.select(best.card.uid, true);
@@ -5478,6 +5532,8 @@ const View = {
       FX.burst(c.x, c.y, { count: 30, colors: ['#ff3d8b', '#ffd23f'], speed: 6, type: 'star' });
     } else {
       FX.toast('⚠ 相手のFEVERゲージが満タン！', { cls: 'warn' });
+      BUI.log('⚠', '相手のFEVERゲージが満タン（次のターンにPP+3で大量展開してくるかも）');
+      BUI.tip('efever', '⚠ <b>相手のFEVER</b>：相手もゲージが満タンになると<b>PP+3</b>でカードを多く出してくる。右上のゲージに注意！');
     }
     BUI.sync();
   },
@@ -5496,6 +5552,7 @@ const View = {
         FX.confetti(90);
         await FX.banner('FEVER TIME!!', { cls: 'b-fever', sub: 'PPが3回復！ カードをもっと出せる！', dur: 1300 });
       } else {
+        BUI.sync();
         FX.flash('#ff2244', 0.3, 300);
         await FX.banner('ENEMY FEVER!!', { cls: 'b-fever enemy', sub: '相手のPPが3回復！', dur: 1100 });
       }
@@ -5758,7 +5815,7 @@ const Screens = {
 };
 
 const MASCOT_LINES = [
-  '今日もドーパミン出していこ！', '合体は正義。同じカードは重ねてナンボ！', 'FEVER中はクリ率+40%！ 一気に畳みかけろ！',
+  '今日もドーパミン出していこ！', '合体は正義。同じカードは重ねてナンボ！', 'FEVERはPP+3！ 出したいカードがある時に使え！',
   '「リーチ!」って出たら、アタックで勝てるかも！', 'ラッキー持ちはクリ率+30%だよ！', '正面に敵がいないとヒーローに直撃するよ！',
   '飛行ユニットは壁を無視してヒーローを殴る！', 'フィールドカードで盤面のルールが変わる！', 'スロットは3つ揃えば大当たり！ 2つでも当たり！',
   'ランク戦は連勝するほどボーナス増えるよ！', '1ターンのダメージ記録、更新しちゃお！', '★3まで育てると覚醒してシールドを持つよ！',
@@ -5896,7 +5953,7 @@ const UI = {
         <section><h3>🃏 カードを出す</h3><p>手札をタップ → 光っているマスをタップ（ドラッグでもOK）。カード左上の数字は必要な<b>PP</b>。PPは毎ターン全回復して、最大値が1ずつ増える（最大10）。</p></section>
         <section><h3>⚔ アタック</h3><p>「アタック!」を押すと、自分のユニットが<b>左から順に正面の敵を攻撃</b>。正面が空いていたら<b>敵ヒーローに直撃</b>！</p></section>
         <section><h3>★ 合体</h3><p>場にいるユニットに<b>同じカードを重ねる</b>と合体して★2、さらに重ねて★3。★3は<b>覚醒</b>してシールドを持つ。登場時効果ももう一度発動！</p></section>
-        <section><h3>🔥 FEVER</h3><p>攻撃・撃破・合体でゲージが溜まる。MAXでボタンを押すと<b>PPが3回復</b>（上限を超えてもOK）。いつ使うかが腕の見せどころ！</p></section>
+        <section><h3>🔥 FEVER</h3><p>攻撃・撃破・合体でゲージが溜まる。MAXでボタンを押すと<b>PPが3回復</b>（上限を超えてもOK）。いつ使うかが腕の見せどころ！ <b>相手も</b>ゲージが溜まるとFEVERを使ってくる（右上のゲージをチェック）。</p></section>
         <section><h3>💥 クリティカル</h3><p>攻撃は<b>10%</b>でクリティカル（ダメージ2倍）。ラッキー持ちやカジノで確率アップ。</p></section>
         <section><h3>🗺 フィールド</h3><p>フィールドカードを出すと、場全体のルールが変わる。新しいフィールドを出すと上書き。</p></section>
         <section><h3>🎰 リーチ</h3><p>アタックすれば倒せそうな時、相手ヒーローに「リーチ!」が光る。</p></section>

@@ -105,7 +105,7 @@ function stageConfig(stageId) {
     name: s.name, avatar: s.avatar, hp: s.hp, isAI: true,
     deck: s.deck ? s.deck.slice() : makeDeck(s.tribes, s.level, hashStr(s.id)),
     ai: { mistake: s.mistake || 0, depth: s.boss ? 3 : s.level <= 1 ? 1 : s.level <= 4 ? 2 : 3 },
-    passive: p, field: s.field || null, fever: !!s.fever,
+    passive: p, field: s.field || null, fever: true, feverRate: s.fever ? 1 : Math.min(0.9, 0.35 + s.level * 0.06), // 敵のFEVERゲージは低レベルほど溜まりにくい
     energyBonus: s.energyBonus || 0, extraCrit: s.extraCrit || 0,
   };
 }
@@ -137,7 +137,7 @@ function rivalConfig(rp) {
     name: R.pick(RIVAL_NAMES), avatar: R.pick(RIVAL_AVATARS), hp: 260 + r.idx * 40, isAI: true,
     deck: makeDeck(tribes, Math.round(level), Math.floor(R.next() * 1e9)),
     ai: { mistake: Math.max(0, 0.35 - r.idx * 0.07), depth: r.idx <= 1 ? 1 : r.idx <= 3 ? 2 : 3 },
-    passive: null, field: null, fever: r.idx >= 4, energyBonus: 0, extraCrit: 0,
+    passive: null, field: null, fever: true, feverRate: Math.min(1, 0.45 + r.idx * 0.09), energyBonus: 0, extraCrit: 0,
     tribes, rankIdx: r.idx,
   };
 }
