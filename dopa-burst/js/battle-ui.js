@@ -5,6 +5,8 @@ const FX_COLORS = {
   fire: '#ff7a2e', ice: '#9ff3ff', dark: '#b07bff', gold: '#ffd23f', bolt: '#bff8ff',
   rocket: '#ffffff', laser: '#ff4d6d', meteor: '#ff9a3d', hit: '#ffffff', quake: '#c7a27a',
 };
+const TILE_LABEL = { power: '⚔<b>+10</b>', guard: '🔰<b>-10</b>', trap: '🕳️<b>罠</b>' };
+const TILE_NAME = { power: '力の陣', guard: '守りの陣', trap: '落とし穴' };
 const COMBO_WORDS = { 5: 'NICE!', 8: 'GREAT!!', 10: '激アツ!!', 13: 'すごすぎ!!', 16: 'ドパミン全開!!', 20: '脳汁ドバドバ!!!', 25: 'もはや神!!!', 30: '止まらねえ!!!!' };
 const CRIT_REACTS = ['えぐっ!!', '神!!', 'やばすぎ!!', 'バグった!?', '気持ちよすぎ!!', '最強!!'];
 const RATINGS = [[0, 'NICE'], [80, 'GREAT'], [160, 'EXCELLENT'], [280, 'AMAZING'], [450, 'GODLIKE'], [800, 'DOPAMINE OVERLOAD']];
@@ -20,7 +22,7 @@ const BUI = {
     if (this.built) return;
     this.built = true;
     const r = this.root = $('#scr-battle');
-    const slots = p => Array.from({ length: LANES }, (_, i) => `<div class="slot" data-p="${p}" data-lane="${i}"><div class="slot-mark"></div></div>`).join('');
+    const slots = p => Array.from({ length: LANES }, (_, i) => `<div class="slot" data-p="${p}" data-lane="${i}"><div class="slot-mark"></div><div class="slot-tile"></div></div>`).join('');
     r.innerHTML = `
       <div class="battle-stage">
         <header class="b-top">
@@ -346,6 +348,15 @@ const BUI = {
         }
       });
     }
+    // 陣地の軸：マスに刻まれた陣
+    for (let p = 0; p < 2; p++) for (let lane = 0; lane < LANES; lane++) {
+      const t = B.tileAt(p, lane), slot = this.slotEl(p, lane);
+      const kind = t ? t.kind : '';
+      if (slot.dataset.tile !== kind) {
+        slot.dataset.tile = kind;
+        $('.slot-tile', slot).innerHTML = kind ? TILE_LABEL[kind] : '';
+      }
+    }
     // 消えたユニットの掃除
     for (const [uid, e] of this.unitEls) {
       const alive = G.P.some(P => P.board.some(u => u && u.uid === uid && !u.removed));
@@ -587,7 +598,10 @@ const BUI = {
       }
       const ok = B.canPlay(0, c) && !G.busy;
       e.classList.toggle('playable', ok);
-      e.classList.toggle('unaff', CARDS[c.id].cost > P.energy);
+      const cost = B.costOf(0, CARDS[c.id]);
+      e.classList.toggle('unaff', cost > P.energy);
+      const cb = e.querySelector('.card-cost b');
+      if (cb && cb.textContent !== String(cost)) { cb.textContent = cost; e.classList.toggle('cost-down', cost < CARDS[c.id].cost); }
       e.classList.toggle('sel', this.sel === c.uid);
     }
     if (this.sel && !ids.has(this.sel)) this.deselect(true);
@@ -1133,8 +1147,9 @@ const View = {
     if (opts.pierced) BUI.tip('pierce', '💥 <b>貫通</b>：敵を倒して余ったダメージがヒーローに届く');
     if (opts.thorns) BUI.tip('thorns', '🌵 <b>トゲ</b>：攻撃してきた相手に20ダメージを返す');
     if (opts.chain) BUI.tip('chain', '⛓️ <b>連鎖</b>：攻撃した相手の両隣にも半分のダメージ');
+    if (opts.armored) { FX.popText(p.x, p.y - 34, '🪖軽減', 'pop-label', { dur: 700 }); BUI.tip('armor', '🪖 <b>アーマー／守りの陣</b>：受けるダメージが10減る。小さい攻撃はほとんど効かない！'); }
     if (amt <= 0) {
-      FX.popText(p.x, p.y, opts.label || 'MISS', 'pop-miss');
+      FX.popText(p.x, p.y, opts.label || (opts.armored ? 'GUARD' : 'MISS'), 'pop-miss');
       Sound.play('cancel');
       return wait(220);
     }
@@ -1581,6 +1596,37 @@ const View = {
     if (e) { updateUnitEl(e, u); animate(e, [{ filter: 'brightness(1)' }, { filter: 'grayscale(1) brightness(.6)' }, { filter: 'brightness(1)' }], { duration: 320 }); }
     if (v) FX.popText(p.x, p.y, `ATK-${v}`, 'pop-dark');
     Sound.play('dark');
+    return wait(120);
+  },
+  // ---- 新しい軸の演出 ----
+  async tile(pi, lane, kind) {
+    const slot = BUI.slotEl(pi, lane);
+    BUI.sync();
+    if (!kind) return;
+    BUI.log('🗺️', `${pi === 0 ? '自分' : '相手'}のマス${lane + 1}に「${TILE_NAME[kind]}」`);
+    BUI.tip('tile', '🗺️ <b>陣</b>：マスに刻まれる効果。⚔力の陣＝ATK+10／🔰守りの陣＝受けるダメージ-10／🕳️落とし穴＝敵が出ると30ダメージ');
+    const c = centerOf(slot);
+    Sound.play('buff');
+    FX.ring(c.x, c.y, { color: kind === 'trap' ? '#ff4d5e' : '#d1a463', size: 10, grow: 8, width: 6 });
+    animate(slot, [{ filter: 'brightness(1)' }, { filter: 'brightness(2.2)' }, { filter: 'brightness(1)' }], { duration: 300 });
+    return wait(120);
+  },
+  async trapFx(u) {
+    const p = BUI.posOf(u);
+    Sound.play('hitHeavy');
+    FX.shake(2);
+    FX.popText(p.x, p.y - 30, '落とし穴!!', 'pop-label', { size: 22 });
+    FX.burst(p.x, p.y + 20, { count: 24, colors: ['#8a6a3a', '#d1a463', '#fff'], speed: 6, gravity: 0.3 });
+    BUI.log('🕳️', `${esc(u.def.name)}が落とし穴にはまった！`);
+    return wait(200);
+  },
+  async guardFx(g, attacker) {
+    const p = BUI.posOf(g);
+    BUI.tip('guard', '🚧 <b>守護</b>：ヒーローへの直撃（飛行も）を、守護を持つユニットが代わりに受け止める');
+    FX.popText(p.x, p.y - 36, 'かばう!', 'pop-label', { size: 20 });
+    const e = BUI.unitEls.get(g.uid);
+    if (e) animate(e, [{ transform: 'scale(1)' }, { transform: 'scale(1.15)', filter: 'brightness(1.8)' }, { transform: 'scale(1)' }], { duration: 260 });
+    BUI.log('🚧', `${esc(g.def.name)}が${esc(attacker.def.name)}の直撃をかばった`);
     return wait(120);
   },
   async discardCard(pi, c) {

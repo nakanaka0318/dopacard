@@ -1317,3 +1317,17 @@ body.reduced .battle-stage.fever-on .board, body.reduced .combo[data-lv="4"], bo
 .aw-name { font: 400 clamp(18px, 5.4vw, 30px) var(--f-disp); color: #ffd0d6; text-shadow: var(--tel-s); animation: fadeIn .3s 1s backwards; }
 .aw-line { margin-top: 6px; padding: 6px 14px; border-radius: 12px; background: rgba(0, 0, 0, .6); box-shadow: inset 0 0 0 2px var(--bc); font-size: clamp(13px, 3.6vw, 17px); color: #fff; animation: fadeIn .3s 1.2s backwards; }
 .aw-desc { font-size: 12px; color: #ffb3bd; animation: fadeIn .3s 1.4s backwards; }
+
+/* ---- 陣地の軸：マスの陣 ---- */
+.slot-tile { position: absolute; left: 50%; bottom: -7px; translate: -50% 0; z-index: 5; pointer-events: none; white-space: nowrap; }
+.slot-tile:empty { display: none; }
+.slot-tile { padding: 0 6px; border-radius: 99px; font: 400 10px/1.5 var(--f-num); background: #2a1c06; color: #ffd9a0; box-shadow: 0 0 0 1.5px #d1a463, 0 0 10px rgba(209, 164, 99, .6); }
+.slot-tile b { font-weight: 400; margin-left: 1px; }
+.slot[data-tile="power"] { background: radial-gradient(circle at 50% 100%, rgba(255, 138, 61, .3), transparent 70%); box-shadow: inset 0 0 0 2px rgba(255, 160, 80, .55); }
+.slot[data-tile="guard"] { background: radial-gradient(circle at 50% 100%, rgba(120, 190, 255, .28), transparent 70%); box-shadow: inset 0 0 0 2px rgba(140, 200, 255, .55); }
+.slot[data-tile="guard"] .slot-tile { background: #0a1c2e; color: #bfe2ff; box-shadow: 0 0 0 1.5px #8cc8ff, 0 0 10px rgba(140, 200, 255, .6); }
+.slot[data-tile="trap"] { background: repeating-linear-gradient(45deg, rgba(255, 77, 94, .12) 0 8px, transparent 8px 16px); box-shadow: inset 0 0 0 2px rgba(255, 77, 94, .5); }
+.slot[data-tile="trap"] .slot-tile { background: #2e0a10; color: #ffb3bd; box-shadow: 0 0 0 1.5px #ff4d5e, 0 0 10px rgba(255, 77, 94, .6); }
+.hcard.cost-down .card-cost { box-shadow: 0 0 0 2cqw #0a2a40, 0 0 4cqw #8dff4f; }
+.hcard.cost-down .card-cost b { color: #0d5a00; }
+.slot[data-p="0"] .slot-tile { bottom: auto; top: -8px; }

@@ -15,8 +15,13 @@ const TRIBES = {
   mimic: { name: 'ミミック', icon: '🎭', color: '#b8f04a', desc: '【姿の軸】変身・コピー・強奪。敵の力を自分のものに', axis: true },
   risk: { name: 'リスク', icon: '💔', color: '#ff3a5c', desc: '【代償の軸】自分のHPを払うほど強くなる', axis: true },
   solo: { name: 'ソロ', icon: '🌙', color: '#9bb8e0', desc: '【孤独の軸】味方が少ないほど強い。一騎当千', axis: true },
+  fort: { name: 'フォート', icon: '🏰', color: '#9fb4c7', desc: '【鉄壁の軸】守護で直撃をかばい、アーマーでダメージを減らす', axis: true },
+  bloom: { name: 'ブルーム', icon: '🌸', color: '#7de8c0', desc: '【癒しの軸】回復が起きるたびに強くなる', axis: true },
+  geo: { name: 'ジオ', icon: '🗺️', color: '#d1a463', desc: '【陣地の軸】マスに陣を刻み、場そのものを味方にする', axis: true },
+  arcane: { name: 'アルカナ', icon: '🔮', color: '#7b8cff', desc: '【呪文の軸】スペルを唱えるほど強く、安くなる', axis: true },
+  rhythm: { name: 'リズム', icon: '🎵', color: '#ff9f1c', desc: '【連打の軸】このターンのコンボ数で化ける', axis: true },
 };
-const TRIBE_ORDER = ['neutral', 'blaze', 'storm', 'sugar', 'necro', 'lucky', 'mecha', 'chrono', 'warp', 'mimic', 'risk', 'solo'];
+const TRIBE_ORDER = ['neutral', 'blaze', 'storm', 'sugar', 'necro', 'lucky', 'mecha', 'chrono', 'warp', 'mimic', 'risk', 'solo', 'fort', 'bloom', 'geo', 'arcane', 'rhythm'];
 
 const RARITY = {
   N: { name: 'N', color: '#b9bdd6', rank: 0 },
@@ -42,12 +47,15 @@ const KW = {
   burnhit: { name: '炎上撃', icon: '🔥', desc: '攻撃した相手に炎上1を与える' },
   freezehit: { name: '凍結撃', icon: '❄️', desc: '攻撃した相手を凍結させる' },
   warp: { name: 'ワープ', icon: '🌀', desc: '攻撃した後、隣の空きマスへ移動する（正面が空いているマスを優先）' },
+  guard: { name: '守護', icon: '🚧', desc: '敵ユニットがヒーローを直接攻撃するとき（飛行も）、代わりにこのユニットが受け止める' },
+  armor: { name: 'アーマー', icon: '🪖', desc: '受けるダメージを10減らす' },
 };
 const STATUS_INFO = {
   burn: '炎上：自分のターン開始時に（10×数値）ダメージ。毎ターン1ずつ減る',
   frozen: '凍結：次の攻撃ができない',
   count: 'カウント：自分のターン開始時に1減り、0になると効果が発動する。途中で倒されても、その場で発動する',
   preAttack: 'アタック前：アタックを押した直後、攻撃の直前に毎ターン発動する（出したターンから発動）',
+  tile: '陣：マスに刻まれる。力の陣＝そのマスの味方ATK+10／守りの陣＝そのマスの味方が受けるダメージ-10／落とし穴＝そのマスに敵ユニットが出ると30ダメージ（1回で消える）',
   hpCost: 'HPコスト：出すときにPPとは別に自分のヒーローのHPを払う（HPは1未満にならない）',
 };
 
@@ -57,12 +65,12 @@ const CARD_LIST = [
   { id: 'n_dog', name: 'わんこ', emoji: '🐶', tribe: 'neutral', rarity: 'N', type: 'unit', cost: 1, atk: 20, hp: 20, text: '元気だけが取り柄。' , flavor: true },
   { id: 'n_chick', name: 'ひよこ伝令', emoji: '🐤', tribe: 'neutral', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 10, text: '登場時：カードを1枚引く',
     onPlay: async (B, u) => { await B.draw(u.owner, 1); } },
-  { id: 'n_cat', name: 'ねこ番長', emoji: '🐈', tribe: 'neutral', rarity: 'N', type: 'unit', cost: 2, atk: 30, hp: 20, text: 'ケンカっぱやい。', flavor: true },
-  { id: 'n_ox', name: 'うしモー', emoji: '🐮', tribe: 'neutral', rarity: 'N', type: 'unit', cost: 3, atk: 30, hp: 50, text: 'どっしり構える。', flavor: true },
+  { id: 'n_cat', name: 'ねこ番長', emoji: '🐈', tribe: 'neutral', rarity: 'N', type: 'unit', cost: 2, atk: 30, hp: 40, text: 'ケンカっぱやい。', flavor: true },
+  { id: 'n_ox', name: 'うしモー', emoji: '🐮', tribe: 'neutral', rarity: 'N', type: 'unit', cost: 3, atk: 30, hp: 60, text: 'どっしり構える。', flavor: true },
   { id: 'n_owl', name: 'ものしりフクロウ', emoji: '🦉', tribe: 'neutral', rarity: 'R', type: 'unit', cost: 3, atk: 20, hp: 30, text: '登場時：カードを2枚引く',
     onPlay: async (B, u) => { await B.draw(u.owner, 2); } },
   { id: 'n_shark', name: 'シャーク', emoji: '🦈', tribe: 'neutral', rarity: 'R', type: 'unit', cost: 3, atk: 20, hp: 30, kw: ['double'], text: '' },
-  { id: 'n_gorilla', name: 'ゴリラ番長', emoji: '🦍', tribe: 'neutral', rarity: 'R', type: 'unit', cost: 4, atk: 40, hp: 50, text: 'ウホッ。', flavor: true },
+  { id: 'n_gorilla', name: 'ゴリラ番長', emoji: '🦍', tribe: 'neutral', rarity: 'R', type: 'unit', cost: 4, atk: 50, hp: 60, text: 'ウホッ。', flavor: true },
   { id: 'n_elephant', name: 'マンモス', emoji: '🐘', tribe: 'neutral', rarity: 'R', type: 'unit', cost: 5, atk: 30, hp: 80, kw: ['thorns'], text: '' },
   { id: 'n_box', name: 'びっくり箱', emoji: '🎁', tribe: 'neutral', rarity: 'N', type: 'spell', cost: 1, target: 'none', text: 'ランダムなカード2枚を手札に加える。何が出るかな？',
     ai: { t: 'draw', v: 2 }, cast: async (B, pi) => { await B.addRandomCards(pi, 2); } },
@@ -115,7 +123,7 @@ const CARD_LIST = [
       await B.damageMany(B.spellSrc(pi), es, 30, { fx: 'meteor' });
       for (const e of es) if (e.hp > 0) await B.burn(e, 1);
     } },
-  { id: 'b_dragon', name: '業火竜ヴォルカ', emoji: '🐲', tribe: 'blaze', rarity: 'SSR', type: 'unit', cost: 7, atk: 70, hp: 60, kw: ['pierce'], text: '登場時：敵ユニット全員に炎上2',
+  { id: 'b_dragon', name: '業火竜ヴォルカ', emoji: '🐲', tribe: 'blaze', rarity: 'SSR', type: 'unit', cost: 6, atk: 70, hp: 60, kw: ['pierce'], text: '登場時：敵ユニット全員に炎上2',
     onPlay: async (B, u) => { await B.cutin(u, '焼き尽くせ！'); for (const e of B.units(1 - u.owner)) await B.burn(e, 2, u); } },
   { id: 'b_phoenix', name: '鳳凰フェニクス', emoji: '🦅', tribe: 'blaze', rarity: 'UR', type: 'unit', cost: 6, atk: 50, hp: 40, kw: ['fly', 'undying', 'burnhit'], text: '登場時：敵ユニット全員に20ダメージ。不死は全回復で復活する',
     fullRevive: true,
@@ -149,7 +157,7 @@ const CARD_LIST = [
       await B.damageMany(B.spellSrc(pi), es, 20, { fx: 'ice' });
       for (const e of es) if (e.hp > 0) await B.freeze(e);
     } },
-  { id: 's_djinn', name: '嵐の精霊ジン', emoji: '🧞', tribe: 'storm', rarity: 'SSR', type: 'unit', cost: 5, atk: 40, hp: 40, text: '登場時：敵ユニット全員に（このターンのコンボ数×10）ダメージ',
+  { id: 's_djinn', name: '嵐の精霊ジン', emoji: '🧞', tribe: 'storm', rarity: 'SSR', type: 'unit', cost: 2, atk: 20, hp: 20, text: '登場時：敵ユニット全員に（このターンのコンボ数×10）ダメージ',
     onPlay: async (B, u) => {
       const v = B.G.combo * 10;
       await B.cutin(u, `コンボ${B.G.combo} → ${v}ダメージ！`);
@@ -178,9 +186,9 @@ const CARD_LIST = [
     onPreAttack: async (B, u) => { for (let i = 0; i < 2; i++) { const t = R.pick(B.units(u.owner)); if (t) await B.buff(t, 10, 10); } } },
   { id: 'su_cake', name: 'パーティケーキ', emoji: '🎂', tribe: 'sugar', rarity: 'SR', type: 'spell', cost: 4, target: 'none', text: '味方全員を+20/+20',
     ai: { t: 'buffAll', a: 20, h: 20 }, cast: async (B, pi) => { await B.buffAll(pi, 20, 20); } },
-  { id: 'su_unicorn', name: 'ユニコーン', emoji: '🦄', tribe: 'sugar', rarity: 'SSR', type: 'unit', cost: 5, atk: 40, hp: 50, text: '登場時：味方全員にシールド',
+  { id: 'su_unicorn', name: 'ユニコーン', emoji: '🦄', tribe: 'sugar', rarity: 'SSR', type: 'unit', cost: 4, atk: 40, hp: 50, text: '登場時：味方全員にシールド',
     onPlay: async (B, u) => { await B.cutin(u, 'みんなを守って！'); for (const a of B.units(u.owner)) B.giveShield(a); } },
-  { id: 'su_queen', name: 'スイーツ女王ミルフィ', emoji: '👸', tribe: 'sugar', rarity: 'UR', type: 'unit', cost: 7, atk: 50, hp: 70, text: 'アタック前：味方全員を+10/+10、自分のヒーローを30回復',
+  { id: 'su_queen', name: 'スイーツ女王ミルフィ', emoji: '👸', tribe: 'sugar', rarity: 'UR', type: 'unit', cost: 6, atk: 50, hp: 70, text: 'アタック前：味方全員を+10/+10、自分のヒーローを30回復',
     onPlay: async (B, u) => { await B.cutin(u, '甘い夢を見せてあげる♡'); },
     onPreAttack: async (B, u) => { await B.buffAll(u.owner, 10, 10); await B.heal(B.hero(u.owner), 30, u); } },
 
@@ -250,7 +258,7 @@ const CARD_LIST = [
     fieldCrit: (B, u, owner) => (u.owner === owner ? 0.25 : 0),
     fieldCritMult: (B, u, owner) => (u.owner === owner ? 3 : 2),
     ambient: 'lucky' },
-  { id: 'l_rich', name: '成金ゴブリン', emoji: '🤑', tribe: 'lucky', rarity: 'SR', type: 'unit', cost: 4, atk: 30, hp: 40, kw: ['lucky'], text: '味方がクリティカルを出すたび、敵ヒーローに10ダメージ',
+  { id: 'l_rich', name: '成金ゴブリン', emoji: '🤑', tribe: 'lucky', rarity: 'SR', type: 'unit', cost: 3, atk: 30, hp: 30, kw: ['lucky'], text: '味方がクリティカルを出すたび、敵ヒーローに10ダメージ',
     onAllyCrit: async (B, u) => { await B.damage(u, B.hero(1 - u.owner), 10, { fx: 'gold', quick: true }); } },
   { id: 'l_goddess', name: '幸運の女神フォルトゥナ', emoji: '🧚', tribe: 'lucky', rarity: 'SSR', type: 'unit', cost: 6, atk: 40, hp: 50, kw: ['lucky'], text: '登場時：コインを5回投げ、表の数×20ダメージを敵ヒーローに',
     onPlay: async (B, u) => {
@@ -264,8 +272,8 @@ const CARD_LIST = [
   /* ---------------- メカ ---------------- */
   { id: 'm_gear', name: 'ギアボット', emoji: '⚙️', tribe: 'mecha', rarity: 'N', type: 'unit', cost: 1, atk: 20, hp: 20, text: '合体時：さらに+20/+20',
     onMerge: async (B, u) => { await B.buff(u, 20, 20); } },
-  { id: 'm_battery', name: 'フル充電', emoji: '🔋', tribe: 'mecha', rarity: 'R', type: 'spell', cost: 0, target: 'none', text: 'このターン、PP+2',
-    ai: { t: 'custom' }, cast: async (B, pi) => { await B.gainEnergy(pi, 2); } },
+  { id: 'm_battery', name: 'フル充電', emoji: '🔋', tribe: 'mecha', rarity: 'R', type: 'spell', cost: 0, target: 'none', text: 'このターン、PP+1',
+    ai: { t: 'custom' }, cast: async (B, pi) => { await B.gainEnergy(pi, 1); } },
   { id: 'm_robot', name: 'ロボ兵', emoji: '🤖', tribe: 'mecha', rarity: 'N', type: 'unit', cost: 2, atk: 30, hp: 30, text: '量産型。合体させてナンボ。', flavor: true },
   { id: 'm_drone', name: 'UFOドローン', emoji: '🛸', tribe: 'mecha', rarity: 'N', type: 'unit', cost: 2, atk: 30, hp: 10, kw: ['fly'], text: '' },
   { id: 'm_punch', name: 'ロケットパンチ', emoji: '🚀', tribe: 'mecha', rarity: 'N', type: 'spell', cost: 2, target: 'allyUnit', text: '味方1体のATKぶんのダメージを、その正面（いなければ敵ヒーロー）に与える',
@@ -281,7 +289,7 @@ const CARD_LIST = [
     fieldTurnStart: async (B, owner) => { await B.buffAll(owner, 10, 0); },
     ambient: 'mecha' },
   { id: 'm_gunship', name: 'ガンシップ', emoji: '🚁', tribe: 'mecha', rarity: 'SR', type: 'unit', cost: 5, atk: 40, hp: 40, kw: ['fly', 'double'], text: '' },
-  { id: 'm_satellite', name: '衛星兵器アルテミス', emoji: '🛰️', tribe: 'mecha', rarity: 'SSR', type: 'unit', cost: 6, atk: 50, hp: 50, text: 'アタック前：ランダムな敵に40ダメージ',
+  { id: 'm_satellite', name: '衛星兵器アルテミス', emoji: '🛰️', tribe: 'mecha', rarity: 'SSR', type: 'unit', cost: 5, atk: 50, hp: 50, text: 'アタック前：ランダムな敵に40ダメージ',
     onPlay: async (B, u) => { await B.cutin(u, 'ターゲット、ロックオン'); },
     onPreAttack: async (B, u) => { await B.damage(u, B.randomEnemy(u.owner, true), 40, { fx: 'laser' }); } },
   { id: 'm_deus', name: '機神デウス', emoji: '👾', tribe: 'mecha', rarity: 'UR', type: 'unit', cost: 8, atk: 80, hp: 80, text: '登場時：他の味方全員の★を1つ上げる',
@@ -303,7 +311,7 @@ const CARD_LIST = [
     cast: async (B, pi) => { for (const u of B.units(pi)) if (u.count > 0) await B.tickCount(u); await B.draw(pi, 1); } },
   { id: 'c_seer', name: '未来予知の魔女', emoji: '🔮', tribe: 'chrono', rarity: 'SR', type: 'unit', cost: 3, atk: 20, hp: 30, countdown: 1,
     text: 'カウント1：0になるとカードを2枚引き、PP+2（相手のターン中なら次の自分のターンに）', onCountdown: async (B, u) => { await B.draw(u.owner, 2); await B.gainEnergySoon(u.owner, 2); } },
-  { id: 'c_tower', name: '終焉の時計塔', emoji: '🕰️', tribe: 'chrono', rarity: 'SSR', type: 'unit', cost: 6, atk: 0, hp: 60, countdown: 2,
+  { id: 'c_tower', name: '終焉の時計塔', emoji: '🕰️', tribe: 'chrono', rarity: 'SSR', type: 'unit', cost: 5, atk: 0, hp: 60, countdown: 2,
     text: 'カウント2：0になると敵ユニット全員に60ダメージ、敵ヒーローに60ダメージ',
     onPlay: async (B, u) => { await B.cutin(u, '刻め、終焉のカウントダウン…'); },
     onCountdown: async (B, u) => {
@@ -324,7 +332,7 @@ const CARD_LIST = [
   { id: 'w_blackhole', name: 'ブラックホール', emoji: '🕳️', tribe: 'warp', rarity: 'SR', type: 'spell', cost: 4, target: 'none',
     text: '敵ユニット全員に20ダメージ。生き残った敵を左側へ吸い寄せる（右側に直撃コースが空く）', ai: { t: 'aoe', v: 25 },
     cast: async (B, pi) => { await B.damageMany(B.spellSrc(pi), B.units(1 - pi), 20, { fx: 'dark' }); await B.compact(1 - pi); } },
-  { id: 'w_galaxy', name: '銀河の門番', emoji: '🌌', tribe: 'warp', rarity: 'SSR', type: 'unit', cost: 5, atk: 50, hp: 50,
+  { id: 'w_galaxy', name: '銀河の門番', emoji: '🌌', tribe: 'warp', rarity: 'SSR', type: 'unit', cost: 4, atk: 50, hp: 50,
     text: '登場時：味方全員を、正面に敵がいない空きマスへできるだけワープさせる',
     onPlay: async (B, u) => { await B.cutin(u, '全軍、ワープ開始！'); await B.warpAllToOpen(u.owner); } },
 
@@ -338,7 +346,7 @@ const CARD_LIST = [
       const pool = COLLECTIBLE.filter(c => c.type === 'unit' && c.cost >= 3 && c.cost <= 5 && c.rarity !== 'UR');
       await B.transform(u, R.pick(pool).id, { hatch: true });
     } },
-  { id: 'mi_wand', name: 'へんしんステッキ', emoji: '🪄', tribe: 'mimic', rarity: 'R', type: 'spell', cost: 3, target: 'enemyUnit',
+  { id: 'mi_wand', name: 'へんしんステッキ', emoji: '🪄', tribe: 'mimic', rarity: 'R', type: 'spell', cost: 2, target: 'enemyUnit',
     text: '敵ユニット1体を「ぴよぴよ」（10/10・能力なし）に変える', ai: { t: 'custom' },
     cast: async (B, pi, t) => { await B.transform(t, 'tk_chick'); } },
   { id: 'mi_mirror', name: 'ミラーマン', emoji: '🪞', tribe: 'mimic', rarity: 'SR', type: 'unit', cost: 4, atk: 30, hp: 30,
@@ -361,7 +369,7 @@ const CARD_LIST = [
     text: 'HPコスト30：出すとき自分のヒーローHPを30払う。そのぶん強い' },
   { id: 'r_ronin', name: '背水の浪人', emoji: '🥷', tribe: 'risk', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 30,
     text: '自分のヒーローHPが半分以下ならATK+30', atkMod: (B, u) => { const P = B.P(u.owner); return P.hp <= P.maxHp / 2 ? 30 : 0; } },
-  { id: 'r_pact', name: '悪魔の契約', emoji: '📜', tribe: 'risk', rarity: 'R', type: 'spell', cost: 0, target: 'none', hpCost: 30,
+  { id: 'r_pact', name: '悪魔の契約', emoji: '📜', tribe: 'risk', rarity: 'R', type: 'spell', cost: 1, target: 'none', hpCost: 30,
     text: 'HPコスト30：カードを3枚引く', ai: { t: 'custom' }, cast: async (B, pi) => { await B.draw(pi, 3); } },
   { id: 'r_moon', name: 'ブラッドムーン', emoji: '🌕', tribe: 'risk', rarity: 'SR', type: 'field', cost: 2,
     text: 'フィールド：自分のターン開始時、自分のヒーローHPを20払い、味方全員のATK+10（毎ターン重なる）',
@@ -389,6 +397,102 @@ const CARD_LIST = [
       for (const o of others) await B.destroy(o);
       if (others.length) await B.buff(u, 30 * others.length, 30 * others.length);
     } },
+
+  /* ---------------- フォート（鉄壁の軸：守護・アーマー） ---------------- */
+  { id: 'f_turtle', name: 'てっぺきガメ', emoji: '🐢', tribe: 'fort', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 50, kw: ['guard'], text: '' },
+  { id: 'f_hedgehog', name: 'ヨロイハリネズミ', emoji: '🦔', tribe: 'fort', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 30, kw: ['armor'], text: '' },
+  { id: 'f_golem', name: '城壁ゴーレム', emoji: '🧱', tribe: 'fort', rarity: 'R', type: 'unit', cost: 4, atk: 20, hp: 80, kw: ['guard', 'armor'], text: '' },
+  { id: 'f_wall', name: '鉄壁の陣形', emoji: '🛡️', tribe: 'fort', rarity: 'SR', type: 'spell', cost: 2, target: 'none',
+    text: '味方全員がアーマーを得る。いちばんHPが多い味方は守護も得る', ai: { t: 'custom' },
+    cast: async (B, pi) => {
+      const us = B.units(pi);
+      for (const u of us) B.giveKw(u, 'armor');
+      const top = us.sort((a, b) => b.hp - a.hp)[0];
+      if (top) B.giveKw(top, 'guard');
+    } },
+  { id: 'f_king', name: '不落の要塞王', emoji: '🏯', tribe: 'fort', rarity: 'SSR', type: 'unit', cost: 6, atk: 30, hp: 90, kw: ['guard', 'armor'],
+    text: 'ダメージを受けるたび、受けたダメージと同じだけ敵ヒーローにダメージを返す',
+    onPlay: async (B, u) => { await B.cutin(u, '我が城壁、一歩も通さぬ！'); },
+    onHurt: async (B, u, amt) => { if (amt > 0) await B.damage(u, B.hero(1 - u.owner), amt, { fx: 'hit' }); } },
+
+  /* ---------------- ブルーム（癒しの軸：回復で強くなる） ---------------- */
+  { id: 'h_fairy', name: '癒しの妖精', emoji: '🧚', tribe: 'bloom', rarity: 'N', type: 'unit', cost: 1, atk: 20, hp: 20,
+    text: 'ターン開始時：自分のヒーローを20回復', onTurnStart: async (B, u) => { await B.heal(B.hero(u.owner), 20, u); } },
+  { id: 'h_flower', name: '花の守り手', emoji: '🌷', tribe: 'bloom', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 40,
+    text: '自分のヒーローかユニットが回復するたび、ATK+10', onAnyHeal: async (B, a) => { await B.buff(a, 10, 0, { quick: true }); } },
+  { id: 'h_rain', name: 'いやしの雨', emoji: '🌦️', tribe: 'bloom', rarity: 'R', type: 'spell', cost: 2, target: 'none',
+    text: '味方全員と自分のヒーローを30回復', ai: { t: 'custom' },
+    cast: async (B, pi) => { for (const u of B.units(pi)) await B.heal(u, 30); await B.heal(B.hero(pi), 30); } },
+  { id: 'h_tree', name: '生命の大樹', emoji: '🌳', tribe: 'bloom', rarity: 'SR', type: 'field', cost: 3,
+    text: 'フィールド：自分のターン開始時、味方全員と自分のヒーローを20回復',
+    fieldTurnStart: async (B, owner) => { for (const u of B.units(owner)) await B.heal(u, 20); await B.heal(B.hero(owner), 20); }, ambient: 'sugar' },
+  { id: 'h_saint', name: '聖女アマネ', emoji: '😇', tribe: 'bloom', rarity: 'SSR', type: 'unit', cost: 5, atk: 40, hp: 60,
+    text: '登場時：自分のヒーローを50回復。味方が回復するたび、回復した量（最大40）のダメージをランダムな敵に',
+    onPlay: async (B, u) => { await B.cutin(u, '癒しの光よ、刃となれ'); await B.heal(B.hero(u.owner), 50, u); },
+    onAnyHeal: async (B, a, t, v) => { await B.damage(a, B.randomEnemy(a.owner), Math.min(40, v), { fx: 'gold' }); await B.processDeaths(); } },
+
+  /* ---------------- ジオ（陣地の軸：マスに陣を刻む） ---------------- */
+  { id: 'g_mason', name: '陣地職人', emoji: '👷', tribe: 'geo', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 30,
+    text: '登場時：このマスに「力の陣」を刻む（このマスの味方はATK+10）', onPlay: async (B, u) => { await B.setTile(u.owner, u.lane, 'power', u.owner); } },
+  { id: 'g_digger', name: '落とし穴掘り', emoji: '⛏️', tribe: 'geo', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 20,
+    text: '登場時：正面に敵がいれば20ダメージ。いなければ正面の敵のマスに「落とし穴」（敵ユニットが出ると30ダメージ）',
+    onPlay: async (B, u) => { const o = B.oppositeOf(u); if (o) await B.damage(u, o, 20, { fx: 'hit' }); else await B.setTile(1 - u.owner, u.lane, 'trap', u.owner); } },
+  { id: 'g_ward', name: '守りの結界', emoji: '🔰', tribe: 'geo', rarity: 'R', type: 'spell', cost: 2, target: 'none',
+    text: '陣のない自分のマスすべてに「守りの陣」を刻む（このマスの味方が受けるダメージ-10）', ai: { t: 'custom' },
+    cast: async (B, pi) => { for (let l = 0; l < LANES; l++) if (!B.tileAt(pi, l)) await B.setTile(pi, l, 'guard', pi); } },
+  { id: 'g_lord', name: '領域支配者', emoji: '🚩', tribe: 'geo', rarity: 'SR', type: 'unit', cost: 4, atk: 30, hp: 40,
+    text: '自分の陣1つにつきATK+10。登場時：このマスに「力の陣」を刻む',
+    atkMod: (B, u) => B.tileCount(u.owner) * 10, onPlay: async (B, u) => { await B.setTile(u.owner, u.lane, 'power', u.owner); } },
+  { id: 'g_gaia', name: '大地の覇者ガイア', emoji: '🌍', tribe: 'geo', rarity: 'SSR', type: 'unit', cost: 6, atk: 50, hp: 60,
+    text: '登場時：自分のマスすべてに「力の陣」、敵の空きマスすべてに「落とし穴」を刻む',
+    onPlay: async (B, u) => {
+      await B.cutin(u, '大地よ、我に従え！');
+      await B.quake();
+      for (let l = 0; l < LANES; l++) await B.setTile(u.owner, l, 'power', u.owner);
+      for (const l of B.emptyLanes(1 - u.owner)) await B.setTile(1 - u.owner, l, 'trap', u.owner);
+    } },
+
+  /* ---------------- アルカナ（呪文の軸：スペルで強く・安く） ---------------- */
+  { id: 'a_apprentice', name: '見習い魔法使い', emoji: '🧑‍🎓', tribe: 'arcane', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 30,
+    text: '味方がスペルを使うたび+10/+10', onAllySpell: async (B, a) => { await B.buff(a, 10, 10, { quick: true }); } },
+  { id: 'a_missile', name: 'マジックミサイル', emoji: '✨', tribe: 'arcane', rarity: 'N', type: 'spell', cost: 1, target: 'none',
+    text: 'ランダムな敵ユニット（いなければヒーロー）に20ダメージを2回。このターン2枚目以降のスペルなら3回', ai: { t: 'aoe', v: 30 },
+    cast: async (B, pi) => {
+      const n = B.G.spellsTurn >= 2 ? 3 : 2;
+      for (let i = 0; i < n; i++) { await B.damage(B.spellSrc(pi), B.randomEnemy(pi), 20, { fx: 'bolt' }); await B.processDeaths(); }
+    } },
+  { id: 'a_tome', name: '魔導書の写本', emoji: '📖', tribe: 'arcane', rarity: 'R', type: 'spell', cost: 1, target: 'none',
+    text: 'カードを1枚引く。このターン使ったスペルが2枚以上なら、さらに1枚引く', ai: { t: 'draw', v: 1.5 },
+    cast: async (B, pi) => { await B.draw(pi, B.G.spellsTurn >= 2 ? 2 : 1); } },
+  { id: 'a_merlin', name: '大魔導士メルリン', emoji: '🧙‍♂️', tribe: 'arcane', rarity: 'SR', type: 'unit', cost: 5, atk: 30, hp: 40,
+    text: 'このターン使ったスペル1枚につきコスト-1。味方がスペルを使うたび、敵ヒーローに20ダメージ',
+    costMod: (B, pi) => (B.G.active === pi ? B.G.spellsTurn || 0 : 0),
+    onAllySpell: async (B, a) => { await B.damage(a, B.hero(1 - a.owner), 20, { fx: 'bolt' }); } },
+  { id: 'a_star', name: '星詠みの賢者', emoji: '🌠', tribe: 'arcane', rarity: 'SSR', type: 'unit', cost: 7, atk: 50, hp: 50,
+    text: 'このターン使ったスペル1枚につきコスト-1。登場時：このターン使ったスペルの数×20ダメージを敵ユニット全員に',
+    costMod: (B, pi) => (B.G.active === pi ? B.G.spellsTurn || 0 : 0),
+    onPlay: async (B, u) => {
+      const n = B.G.spellsTurn || 0;
+      await B.cutin(u, n ? `${n}つの呪文が星を呼ぶ！` : '星はまだ眠っている…');
+      if (n) await B.damageMany(u, B.units(1 - u.owner), n * 20, { fx: 'meteor' });
+    } },
+
+  /* ---------------- リズム（連打の軸：コンボで化ける） ---------------- */
+  { id: 'ry_kid', name: 'リズム小僧', emoji: '🥁', tribe: 'rhythm', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 10,
+    text: '登場時：コンボ+2', onPlay: async (B, u) => { B.bumpCombo(u.owner, 2); } },
+  { id: 'ry_dancer', name: 'ビートダンサー', emoji: '🕺', tribe: 'rhythm', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 20,
+    text: '登場時：このターンのコンボ数×10、ATKを得る（最大+60）',
+    onPlay: async (B, u) => { const v = Math.min(60, B.G.combo * 10); if (v) await B.buff(u, v, 0); } },
+  { id: 'ry_finish', name: 'フィニッシュブロー', emoji: '👊', tribe: 'rhythm', rarity: 'R', type: 'spell', cost: 2, target: 'enemyAny',
+    text: '敵1体（ヒーローも可）に、このターンのコンボ数×10ダメージ', ai: { t: 'custom' },
+    cast: async (B, pi, t) => { await B.damage(B.spellSrc(pi), t, B.G.combo * 10, { fx: 'meteor' }); } },
+  { id: 'ry_dj', name: 'DJスクラッチ', emoji: '🎧', tribe: 'rhythm', rarity: 'SR', type: 'unit', cost: 3, atk: 30, hp: 30,
+    text: '自分がカードを出すたび、ランダムな敵に10ダメージ＆コンボ+1',
+    onAllyCard: async (B, a) => { await B.damage(a, B.randomEnemy(a.owner), 10, { fx: 'bolt' }); B.bumpCombo(a.owner, 1); } },
+  { id: 'ry_master', name: 'コンボマスター・ビート', emoji: '🎶', tribe: 'rhythm', rarity: 'SSR', type: 'unit', cost: 5, atk: 40, hp: 40, kw: ['double'],
+    text: '自分のターン中、コンボ数×5だけATKが上がる（最大+60）',
+    onPlay: async (B, u) => { await B.cutin(u, 'ビートを刻め！ 止まるな！'); },
+    atkMod: (B, u) => (B.G.active === u.owner ? Math.min(60, B.G.combo * 5) : 0) },
 
   /* ---------------- トークン（入手不可） ---------------- */
   { id: 'tk_bone', name: 'ホネホネ', emoji: '🦴', tribe: 'necro', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 10, token: true, text: 'カタカタ。', flavor: true },

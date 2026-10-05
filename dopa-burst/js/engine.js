@@ -26,7 +26,8 @@ const B = {
   start(cfg) {
     this._uid = 1;
     const G = this.G = {
-      cfg, round: 0, active: 0, combo: 0, turnDamage: 0, field: null,
+      cfg, round: 0, active: 0, combo: 0, turnDamage: 0, field: null, spellsTurn: 0,
+      tiles: [new Array(LANES).fill(null), new Array(LANES).fill(null)], // 陣地の軸：マスに刻まれた陣
       over: false, busy: false, winner: null, endHandled: false,
       P: [this._mkPlayer(cfg.player, 0), this._mkPlayer(cfg.enemy, 1)],
       stats: [this._mkStats(), this._mkStats()],
@@ -86,6 +87,8 @@ const B = {
     const f = this.G.field;
     if (f && f.def.fieldAtk) a += f.def.fieldAtk(this, u, f.owner);
     if (u.def.atkMod) a += u.def.atkMod(this, u);
+    const tile = this.tileAt(u.owner, u.lane);
+    if (tile && tile.kind === 'power') a += 10;
     return Math.max(0, a);
   },
   // 状況で増えるキーワード（例：ひとりの時だけ飛行）も含めて判定
@@ -112,7 +115,28 @@ const B = {
     if (f && f.def.fieldCritMult) return f.def.fieldCritMult(this, u, f.owner);
     return 2;
   },
-  costOf(pi, def) { return def.cost; },
+  costOf(pi, def) { return Math.max(0, def.cost - (def.costMod ? def.costMod(this, pi) : 0)); },
+  // 鉄壁の軸：アーマーと守りの陣で、受けるダメージを減らす
+  reduceOf(u) {
+    let r = this.hasKw(u, 'armor') ? 10 : 0;
+    const t = this.tileAt(u.owner, u.lane);
+    if (t && t.kind === 'guard') r += 10;
+    return r;
+  },
+  // 守護：ヒーローへの直撃を代わりに受けるユニット（いちばんHPが多いもの）
+  guardOf(pi, hpOf) {
+    const gs = this.units(pi).filter(u => this.hasKw(u, 'guard') && (!hpOf || hpOf(u) > 0));
+    if (!gs.length) return null;
+    return gs.sort((a, b) => (hpOf ? hpOf(b) - hpOf(a) : b.hp - a.hp) || a.lane - b.lane)[0];
+  },
+  tileAt(pi, lane) { const T = this.G.tiles; return T && T[pi] ? T[pi][lane] : null; },
+  async setTile(pi, lane, kind, by) {
+    const G = this.G;
+    if (!G.tiles) G.tiles = [new Array(LANES).fill(null), new Array(LANES).fill(null)];
+    G.tiles[pi][lane] = kind ? { kind, by } : null;
+    await this.V('tile', pi, lane, kind);
+  },
+  tileCount(pi, kind) { const T = this.G.tiles; return T ? T[pi].filter(t => t && (!kind || t.kind === kind)).length : 0; },
 
   /* ---------- ドロー ---------- */
   _rawDraw(pi) {
@@ -163,12 +187,19 @@ const B = {
       if (target.removed || target.hp <= 0) return 0;
       if (amt <= 0) { await this.V('damage', target, 0, opts); return 0; }
       if (target.shield) { target.shield = false; await this.V('blocked', target); return 0; }
+      const red = this.reduceOf(target);
+      if (red > 0) {
+        amt = Math.max(0, amt - red);
+        if (amt <= 0) { await this.V('damage', target, 0, Object.assign({}, opts, { armored: true })); return 0; }
+        opts = Object.assign({}, opts, { armored: true });
+      }
       const before = target.hp;
       target.hp -= amt;
       target.lastHitBy = this.isUnit(src) ? src : null;
       target.lastHitOwner = so;
       this._countDamage(so, target.owner, amt);
       await this.V('damage', target, amt, opts);
+      if (target.def.onHurt) await target.def.onHurt(this, target, amt, src);
       const overkill = Math.max(0, amt - before);
       const pierce = opts.pierce || (opts.attack && this.isUnit(src) && this.hasKw(src, 'pierce'));
       if (pierce && overkill > 0) {
@@ -218,6 +249,7 @@ const B = {
       target.hp += v;
       await this.V('heal', target, v);
       this.G.stats[target.owner].healed += v;
+      await this._healHook(target.owner, target, v);
       return v;
     }
     const P = this.G.P[target.owner];
@@ -226,7 +258,16 @@ const B = {
     P.hp += v;
     this.G.stats[target.owner].healed += v;
     await this.V('heal', target, v);
+    await this._healHook(target.owner, target, v);
     return v;
+  },
+  // 癒しの軸：回復が起きるたびに反応するユニット（連鎖しすぎないよう深さを制限）
+  async _healHook(pi, target, v) {
+    const G = this.G;
+    if ((G.healDepth || 0) >= 2) return;
+    G.healDepth = (G.healDepth || 0) + 1;
+    try { for (const a of this.units(pi)) if (a.def.onAnyHeal) await a.def.onAnyHeal(this, a, target, v); }
+    finally { G.healDepth--; }
   },
   async buff(u, a, h, opts = {}) {
     if (!this.alive(u)) return;
@@ -281,6 +322,12 @@ const B = {
     const u = this._mkUnit(pi, id, lane);
     P.board[lane] = u;
     await this.V('summon', u, opts);
+    const tile = this.tileAt(pi, lane);
+    if (tile && tile.kind === 'trap') {
+      await this.setTile(pi, lane, null);
+      await this.V('trapFx', u);
+      await this.damage({ owner: 1 - pi, trap: true }, u, 30, { trap: true });
+    }
     return u;
   },
   _mkUnit(pi, id, lane) {
@@ -601,7 +648,7 @@ const B = {
   /* ---------- ターン ---------- */
   async beginTurn(pi) {
     const G = this.G;
-    G.active = pi; G.combo = 0; G.turnDamage = 0; G.reachShown = false;
+    G.active = pi; G.combo = 0; G.turnDamage = 0; G.reachShown = false; G.spellsTurn = 0;
     const P = G.P[pi];
     if (pi === 0) G.round++;
     P.critBonus = 0;
@@ -678,7 +725,8 @@ const B = {
   async unitAttack(u) {
     const G = this.G, e = 1 - u.owner;
     const opp = G.P[e].board[u.lane];
-    const target = (!this.hasKw(u, 'fly') && this.alive(opp)) ? opp : this.hero(e);
+    let target = (!this.hasKw(u, 'fly') && this.alive(opp)) ? opp : this.hero(e);
+    if (target.isHero) { const g = this.guardOf(e); if (g) { target = g; await this.V('guardFx', g, u); } }
     const info = { target, dmg: this.atkOf(u), crit: false, label: null };
     if (!this.simMode && R.chance(this.critChance(u))) { info.crit = true; info.dmg = Math.round(info.dmg * this.critMult(u)); }
     if (u.def.beforeAttack) await u.def.beforeAttack(this, u, info);
@@ -732,19 +780,28 @@ const B = {
       const unsure = !!u.def.beforeAttack;
       const sw = this.hasKw(u, 'double') ? 2 : 1;
       for (let s = 0; s < sw; s++) {
-        const o = E.board[lane], so = o && st.get(o.uid);
-        if (this.hasKw(u, 'fly') || !so || so.hp <= 0) {
+        const opp = E.board[lane], so0 = opp && st.get(opp.uid);
+        const fly = this.hasKw(u, 'fly');
+        let o = null, so = null;
+        if (!fly && so0 && so0.hp > 0) { o = opp; so = so0; }
+        else {
+          // ヒーローへの直撃は「守護」を持つユニットが代わりに受ける
+          const g = this.guardOf(1 - pi, x => (st.get(x.uid) || x).hp);
+          if (g) { o = g; so = st.get(g.uid); }
+        }
+        if (!o) {
           if (!unsure) face += a;
-          list.push({ u, hero: true, dmg: a, unsure, fly: this.hasKw(u, 'fly') && !!so && so.hp > 0 });
+          list.push({ u, hero: true, dmg: a, unsure, fly: fly && !!so0 && so0.hp > 0 });
         } else if (so.shield) {
           so.shield = false; list.push({ u, target: o, dmg: 0, block: true });
         } else {
           const before = so.hp;
-          if (!unsure) so.hp -= a;
+          const ad = Math.max(0, a - this.reduceOf(o));
+          if (!unsure) so.hp -= ad;
           const kill = !unsure && so.hp <= 0;
           let pierce = 0;
-          if (kill && this.hasKw(u, 'pierce')) { pierce = a - before; face += pierce; }
-          list.push({ u, target: o, dmg: a, kill, pierce, unsure });
+          if (kill && this.hasKw(u, 'pierce')) { pierce = ad - before; face += pierce; }
+          list.push({ u, target: o, dmg: ad, kill, pierce, unsure, guard: o !== E.board[lane] || undefined });
         }
       }
     }
@@ -802,18 +859,22 @@ const B = {
     G.stats[pi].cardsPlayed++;
     await this.V('cardPlayed', pi, card, def, t);
     if (def.hpCost) await this.payHp(pi, def.hpCost);
+    let played = null;
     if (def.type === 'unit') {
       if (t.kind === 'merge') {
         const u = t.u;
+        played = u;
         await this._starUp(u, def);
         this.bumpCombo(pi);
         if (def.onPlay && this.alive(u)) await def.onPlay(this, u);
       } else {
         const u = await this.summon(pi, def.id, t.lane, { fromHand: true });
-        if (u && def.onPlay) await def.onPlay(this, u);
+        played = u;
+        if (u && def.onPlay && this.alive(u)) await def.onPlay(this, u);
       }
     } else if (def.type === 'spell') {
       G.stats[pi].spells++;
+      G.spellsTurn = (G.spellsTurn || 0) + 1;
       const target = t.kind === 'unit' ? t.u : t.kind === 'hero' ? this.hero(t.owner) : null;
       await def.cast(this, pi, target);
       P.discard.push(card.id);
@@ -825,6 +886,8 @@ const B = {
     }
     this.bumpCombo(pi);
     this.addFever(pi, 4);
+    // 連打の軸：カードを出すたびに反応するユニット
+    for (const a of this.units(pi)) if (a !== played && a.def.onAllyCard) { await a.def.onAllyCard(this, a, def); await this.processDeaths(); }
     const f = G.field;
     if (f && f.def.fieldCardPlayed) await f.def.fieldCardPlayed(this, pi, f.owner);
     await this.processDeaths();

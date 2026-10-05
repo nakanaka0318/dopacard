@@ -147,6 +147,9 @@ const AI = {
     if (B.hasKw(u, 'double')) v += a * 0.8;
     if (B.hasKw(u, 'fly')) v += 15;
     if (u.shield) v += 20;
+    if (B.hasKw(u, 'guard')) v += 15;
+    if (B.hasKw(u, 'armor')) v += 12;
+    if (u.def.onAnyHeal || u.def.onAllySpell || u.def.onAllyCard || u.def.onHurt) v += 15;
     if (u.kw.has('undying') && !u.revived) v += 25;
     if (u.def.onTurnStart || u.def.onPreAttack) v += 25;
     if (u.count > 0 && u.def.onCountdown) v += 40 + 40 / u.count; // 倒されても発動するので確実な価値
@@ -173,6 +176,7 @@ const AI = {
       P: [cp(G.P[0]), cp(G.P[1])],
       stats: G.stats.map(x => Object.assign({}, x)),
       field: G.field ? Object.assign({}, G.field) : null,
+      tiles: G.tiles ? G.tiles.map(r => r.slice()) : null,
       busy: false, bossBusy: false,
     });
   },
@@ -250,6 +254,10 @@ const AI = {
       case 'so_hermit': return (5 - mine.length - 1) * 0.8;
       case 'so_rider': return mine.length === 0 ? 5 : -1;
       case 'so_lion': return mine.length >= 2 ? mine.length * 2 : mine.length === 1 ? 0 : 1;
+      case 'ry_dancer': return Math.min(6, B.G.combo) - 1;
+      case 'a_star': return (B.G.spellsTurn || 0) * theirs.length * 1.2 - 1;
+      case 'g_gaia': return 3 + B.emptyLanes(1 - pi).length * 0.6;
+      case 'f_turtle': case 'f_golem': case 'f_king': return theirs.some(u => !B.oppositeOf(u) || B.hasKw(u, 'fly')) ? 2 : 0;
     }
     return 0;
   },
@@ -344,7 +352,7 @@ const AI = {
       case 'l_clover': return B.units(pi).length * 0.8 + 1.2;
       case 'l_slot': return 3.5;
       case 'm_battery': {
-        const want = P.hand.some(c => CARDS[c.id].cost > P.energy && CARDS[c.id].cost <= P.energy + 2);
+        const want = P.hand.some(c => B.costOf(pi, CARDS[c.id]) === P.energy + 1);
         return want ? 4 : -1;
       }
       case 'm_punch': {
@@ -363,6 +371,15 @@ const AI = {
         return (blocked && opens ? B.atkOf(tu) / 10 * 1.2 + 1 : 0.5) + this.lethalBonus(B, pi, blocked && opens ? B.atkOf(tu) : 0) * 0.3;
       }
       case 'mi_wand': return tu && !tu.def.token ? this.uval(B, tu) - 2.5 : -1;
+      case 'ry_finish': {
+        const d = G.combo * 10;
+        if (t.kind === 'hero') return d / 10 * 0.8 + (E.hp <= d ? 100 : 0);
+        if (!tu || tu.shield) return 0.2;
+        return d >= tu.hp ? this.uval(B, tu) * 1.3 : d / 10 * 0.4;
+      }
+      case 'h_rain': return B.units(pi).reduce((a, u) => a + Math.min(30, u.maxHp - u.hp), 0) / 10 * 0.6 + Math.min(30, P.maxHp - P.hp) / 10 * 0.5;
+      case 'f_wall': return B.units(pi).length * 1.1;
+      case 'g_ward': return B.units(pi).length * 0.8 + 0.5;
       case 'r_pact': return P.hand.length < 6 ? 4.5 : 0.5;
     }
     return 1;
