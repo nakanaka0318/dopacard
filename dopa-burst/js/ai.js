@@ -372,7 +372,7 @@ const AI = {
       }
       case 'mi_wand': return tu && !tu.def.token ? this.uval(B, tu) - 2.5 : -1;
       case 'ry_finish': {
-        const d = G.combo * 10;
+        const d = G.combo * 15;
         if (t.kind === 'hero') return d / 10 * 0.8 + (E.hp <= d ? 100 : 0);
         if (!tu || tu.shield) return 0.2;
         return d >= tu.hp ? this.uval(B, tu) * 1.3 : d / 10 * 0.4;

@@ -24,6 +24,7 @@
 - `python3 tools/build.py` … `dist/` に1ファイル版を書き出す
 - `node tools/sim.js 500` … AI同士を大量対戦させて例外・バランスを確認
 - `node tools/stagesim.js 80` … 各ステージの勝率を確認
+- `node tools/dominance.js` … 「完全上位互換」になっているカードの組がないか確認
 - `node tools/rushsim.js 10` … ボスラッシュ各ボスの勝率（プレイヤー側は深さ2のAI）
 - `node tools/aivs.js 300 3` … 先読みAI（深さ3）と先読みなしAIを対戦させて強さを比較
 - `tools/shot.js` / `tools/scenes*.js`（`scenes5.js` は敵のFEVER、`scenes6.js` はボスラッシュ、`scenes7.js` は新しい5つの軸） … Playwrightで画面を撮影して確認
