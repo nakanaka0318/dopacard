@@ -50,6 +50,7 @@ const Meta = {
       records: { turnDamage: 0, combo: 0 },
       life: { wins: 0, battles: 0, crits: 0, merges: 0, kills: 0 },
       flags: {}, newCards: [],
+      rush: { wins: {}, tries: {}, best: {}, fastest: {}, allClear: false },
     };
   },
   load() {
@@ -285,6 +286,48 @@ const Meta = {
     this.save.starClaims.push(i);
     this.grant(m.reward);
     return m.reward;
+  },
+
+  /* ---------- ボスラッシュ ---------- */
+  rushUnlocked() { return this.stageMask('1-4') > 0; },
+  rushTierOpen(tier) {
+    if (tier <= 1) return true;
+    return BOSS_LIST.some(b => b.tier === tier - 1 && this.rushWins(b.id) > 0);
+  },
+  rushWins(id) { return this.save.rush.wins[id] || 0; },
+  rushDefeated() { return BOSS_LIST.filter(b => this.rushWins(b.id) > 0).length; },
+  rushFirstReward(b) { return { coins: 400 + b.no * 60, premium: b.tier, tickets: b.tier >= 3 ? 2 : 1 }; },
+  RUSH_ALL_REWARD: { coins: 10000, premium: 10, tickets: 10 },
+  rushResult(id, res) {
+    const b = BOSSES[id], s = this.save, rs = s.rush;
+    const out = { coins: 0, xp: 0, firstClear: false, bonus: null, allClear: false };
+    this.trackBattle(res);
+    rs.tries[id] = (rs.tries[id] || 0) + 1;
+    const pct = Math.round(Math.min(1, 1 - res.enemyHp / res.enemyMaxHp) * 100);
+    out.pct = pct;
+    out.bestBefore = rs.best[id] || 0;
+    out.newBest = pct > out.bestBefore;
+    rs.best[id] = Math.max(out.bestBefore, pct);
+    if (!res.win) {
+      // 負けても、削ったぶんだけコインがもらえる（あと少し！を味わえるように）
+      out.coins = 30 + Math.round(pct * (1 + b.tier * 0.5));
+      out.xp = 30 + b.tier * 10;
+      s.coins += out.coins;
+    } else {
+      out.firstClear = !rs.wins[id];
+      rs.wins[id] = (rs.wins[id] || 0) + 1;
+      out.fastest = !rs.fastest[id] || res.rounds < rs.fastest[id];
+      if (out.fastest) rs.fastest[id] = res.rounds;
+      out.coins = 250 + b.no * 25;
+      out.xp = 120 + b.tier * 40;
+      if (out.firstClear) { const f = this.rushFirstReward(b); out.coins += f.coins; out.bonus = { premium: f.premium, tickets: f.tickets }; this.grant(out.bonus); }
+      if (!rs.allClear && this.rushDefeated() >= BOSS_LIST.length) { rs.allClear = true; out.allClear = true; this.grant(this.RUSH_ALL_REWARD); }
+      s.coins += out.coins;
+      this.winExtras(out);
+    }
+    out.levelUps = this.gainXP(out.xp);
+    this.persist();
+    return out;
   },
 
   /* ---------- ランク戦 ---------- */

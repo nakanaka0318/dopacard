@@ -33,7 +33,10 @@ const B = {
       reachShown: false,
     };
     for (let i = 0; i < 4; i++) { this._rawDraw(0); this._rawDraw(1); }
+    for (let i = 4; i < (cfg.enemy.startHand || 4); i++) this._rawDraw(1);
     if (cfg.enemy.field && CARDS[cfg.enemy.field]) G.field = { def: CARDS[cfg.enemy.field], owner: 1 };
+    // ボスは取り巻きを最初から場に置いていることがある
+    (cfg.enemy.startUnits || []).forEach(([id, lane]) => { if (!G.P[1].board[lane]) G.P[1].board[lane] = this._mkUnit(1, id, lane); });
     return G;
   },
   _mkPlayer(c, idx) {
@@ -46,6 +49,8 @@ const B = {
       fever: 0, feverOn: false, feverEnabled: c.fever !== false, feverRate: c.feverRate ?? 1,
       critBonus: 0, extraCrit: c.extraCrit || 0,
       passive: c.passive || null, isAI: !!c.isAI, ai: c.ai || {},
+      // ボスラッシュ用：boss は読み取り専用の定義。状態（phase/ultCd）は数値で持つ（AIの盤面コピーで共有されないように）
+      boss: c.boss || null, phase: 0, ultEvery: 0, ultCd: c.boss && c.boss.ult ? c.boss.ult.first ?? c.boss.ult.every : 0,
       heroRef: { isHero: true, owner: idx },
     };
   },
@@ -273,17 +278,20 @@ const B = {
       if (!free.length) return null;
       lane = R.pick(free);
     }
-    const def = CARDS[id];
-    const u = {
-      uid: this._uid++, id, def, owner: pi, lane,
-      atk: def.atk, hp: def.hp, maxHp: def.hp, star: 1,
-      kw: new Set(def.kw.filter(k => k !== 'shield')), shield: def.kw.includes('shield'),
-      burn: 0, frozen: false, revived: false, removed: false, token: !!def.token, born: this.G.round,
-      count: def.countdown || 0,
-    };
+    const u = this._mkUnit(pi, id, lane);
     P.board[lane] = u;
     await this.V('summon', u, opts);
     return u;
+  },
+  _mkUnit(pi, id, lane) {
+    const def = CARDS[id];
+    return {
+      uid: this._uid++, id, def, owner: pi, lane,
+      atk: def.atk, hp: def.hp, maxHp: def.hp, star: 1,
+      kw: new Set(def.kw.filter(k => k !== 'shield')), shield: def.kw.includes('shield'),
+      burn: 0, frozen: false, revived: false, removed: false, token: !!def.token, born: this.G ? this.G.round : 0,
+      count: def.countdown || 0,
+    };
   },
   async _starUp(u, def) {
     if (!this.alive(u) || u.star >= 3) return false;
@@ -436,6 +444,104 @@ const B = {
     return v;
   },
 
+  /* ---------- ボスが使う特殊な効果 ---------- */
+  // ユニットを持ち主の手札に戻す（トークンは消える）
+  async bounce(u) {
+    if (!this.alive(u)) return;
+    const P = this.G.P[u.owner];
+    if (P.board[u.lane] === u) P.board[u.lane] = null;
+    u.removed = true;
+    await this.V('bounce', u);
+    if (u.token) return;
+    if (P.hand.length < HAND_MAX) P.hand.push({ uid: this._uid++, id: u.id });
+    else P.discard.push(u.id);
+    this.V('sync');
+  },
+  // ATKを下げる（0未満にはならない）
+  async debuff(u, a) {
+    if (!this.alive(u)) return;
+    const v = Math.min(a, u.atk);
+    u.atk -= v;
+    await this.V('debuff', u, v);
+  },
+  // 手札をランダムに捨てさせる
+  async discardRandom(pi, n) {
+    const P = this.G.P[pi];
+    for (let i = 0; i < n && P.hand.length; i++) {
+      const c = P.hand.splice(R.int(0, P.hand.length - 1), 1)[0];
+      if (!c.gift) P.discard.push(c.id);
+      await this.V('discardCard', pi, c);
+    }
+  },
+  // 墓地のユニットを空きマスに復活
+  async reviveFromGrave(pi, n, filter) {
+    const P = this.G.P[pi];
+    let k = 0;
+    for (let i = 0; i < n; i++) {
+      const lanes = this.emptyLanes(pi);
+      const pool = P.grave.filter(id => CARDS[id] && (!filter || filter(CARDS[id])));
+      if (!lanes.length || !pool.length) break;
+      const id = R.pick(pool);
+      P.grave.splice(P.grave.indexOf(id), 1);
+      await this.summon(pi, id, R.pick(lanes), { revive: true });
+      k++;
+    }
+    return k;
+  },
+  // 場のユニットの位置をばらばらに入れ替える
+  async shuffleBoard(pi) {
+    const P = this.G.P[pi], us = this.units(pi);
+    if (!us.length) return;
+    const lanes = R.shuffle([0, 1, 2, 3, 4].filter(l => !P.board[l] || this.alive(P.board[l])));
+    us.forEach(u => { P.board[u.lane] = null; });
+    const moves = us.map((u, i) => { const from = u.lane; u.lane = lanes[i]; P.board[u.lane] = u; return [u, from]; });
+    for (const [u, from] of moves) if (u.lane !== from) await this.V('move', u, from, { quick: true, shuffle: true });
+  },
+  // 手札のユニットをコストを払わずに出す
+  async summonFromHand(pi, n, filter) {
+    const P = this.G.P[pi];
+    for (let i = 0; i < n; i++) {
+      const lanes = this.emptyLanes(pi);
+      const cands = P.hand.filter(c => CARDS[c.id].type === 'unit' && (!filter || filter(CARDS[c.id]))).sort((a, b) => CARDS[b.id].cost - CARDS[a.id].cost);
+      if (!lanes.length || !cands.length) break;
+      const c = cands[0];
+      P.hand.splice(P.hand.indexOf(c), 1);
+      const u = await this.summon(pi, c.id, this.freeLane(pi, R.pick(lanes), false), { fromHand: true });
+      if (u && u.def.onPlay) await u.def.onPlay(this, u);
+      await this.processDeaths();
+    }
+  },
+  // ボス：HPがしきい値を下回ったら覚醒（安全なタイミングでまとめて処理）
+  async bossCheck() {
+    const G = this.G;
+    if (!G || G.over || G.bossBusy) return;
+    for (const P of G.P) {
+      const b = P.boss;
+      if (!b || !b.phases) continue;
+      while (P.phase < b.phases.length && P.hp > 0 && P.hp <= P.maxHp * b.phases[P.phase].at) {
+        const ph = b.phases[P.phase];
+        P.phase++;
+        G.bossBusy = true;
+        try {
+          await this.V('bossPhase', P.idx, P.phase, ph);
+          await ph.run(this, P.idx);
+          await this.processDeaths();
+        } finally { G.bossBusy = false; }
+      }
+    }
+  },
+  async bossUltimate(pi) {
+    const P = this.G.P[pi], u = P.boss && P.boss.ult;
+    if (!u) return;
+    P.ultCd--;
+    if (P.ultCd > 0) { this.V('sync'); return; }
+    await this.V('bossUlt', pi, u);
+    await u.run(this, pi);
+    await this.processDeaths();
+    P.ultCd = P.ultEvery || u.every;
+    this.V('sync');
+  },
+
   /* ---------- 演出付きランダム ---------- */
   async dice(u) { const n = R.int(1, 6); await this.V('dice', u, n); return n; },
   async coinFlip(pi, n) { const r = []; for (let i = 0; i < n; i++) r.push(R.chance(0.5)); await this.V('coins', pi, r); return r; },
@@ -500,7 +606,7 @@ const B = {
     if (pi === 0) G.round++;
     P.critBonus = 0;
     P.maxEnergy = Math.min(10, P.maxEnergy + 1);
-    P.energy = P.maxEnergy + P.energyBonus + (P.nextEnergy || 0);
+    P.energy = Math.max(0, P.maxEnergy + P.energyBonus + (P.nextEnergy || 0));
     P.nextEnergy = 0;
     await this.V('turnStart', pi, G.round);
     if (G.round >= 16 && pi === 0) {
@@ -529,6 +635,8 @@ const B = {
     }
     await this.processDeaths();
     if (P.passive && P.passive.turnStart) { await this.V('passive', pi, P.passive); await P.passive.turnStart(this, pi); await this.processDeaths(); }
+    if (P.boss) await this.bossUltimate(pi);
+    await this.bossCheck();
     this.V('sync');
   },
 
@@ -542,6 +650,7 @@ const B = {
       await this.processDeaths();
     }
     await this.attackPhase(pi);
+    await this.bossCheck();
     const st = G.stats[pi];
     st.maxTurnDamage = Math.max(st.maxTurnDamage, G.turnDamage);
     await this.V('turnSummary', pi, G.turnDamage, G.combo);
@@ -600,6 +709,7 @@ const B = {
     if (u.def.afterAttack && this.alive(u)) await u.def.afterAttack(this, u, info);
     await this.processDeaths();
     if (this.hasKw(u, 'warp') && this.alive(u)) await this.moveUnit(u, this.adjacentFree(u), { warp: true });
+    await this.bossCheck();
   },
 
   // このターン敵ヒーローに入りそうなダメージ（リーチ判定）
@@ -718,6 +828,7 @@ const B = {
     const f = G.field;
     if (f && f.def.fieldCardPlayed) await f.def.fieldCardPlayed(this, pi, f.owner);
     await this.processDeaths();
+    await this.bossCheck();
     this.V('sync');
     return true;
   },

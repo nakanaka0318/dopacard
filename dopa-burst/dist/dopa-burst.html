@@ -1107,6 +1107,227 @@ body.reduced .battle-stage.fever-on .board, body.reduced .combo[data-lv="4"], bo
   .reach.on, .slot-msg.reach, .slotm.reach .reel:last-child { animation: none; }
 }
 
+/* =====================================================================
+   ボスラッシュ：ストーリーの夜の藍色とは別の「赤黒い警報」の世界。
+   黄黒の警告テープ、赤いスキャンライン、グリッチ文字でボスの格を出す。
+   ===================================================================== */
+:root { --blood: #ff2244; --abyss: #12010a; }
+
+/* EXカード（ボス専用）：黒地に赤い脈動の縁 */
+.r-EX .card-in, .r-EX .unit-in { background: linear-gradient(180deg, #3a0414, #12010a); }
+.r-EX .card-in::after, .r-EX .unit-in::after { box-shadow: inset 0 0 0 1.6cqw var(--blood), 0 0 3cqw var(--blood); animation: exPulse 1.4s ease-in-out infinite; }
+.r-EX .card-burst { opacity: 1; background: repeating-conic-gradient(rgba(255, 34, 68, .35) 0 6deg, transparent 6deg 18deg); animation: spin 8s linear infinite; }
+.r-EX .card-rar { color: #fff; background: var(--blood); padding: .5cqw 2cqw; border-radius: 2cqw; text-shadow: none; }
+@keyframes exPulse { 50% { box-shadow: inset 0 0 0 1.6cqw #ff7a8a, 0 0 6cqw var(--blood); } }
+.ex { color: #ff6b7c; text-shadow: 0 0 8px var(--blood); }
+
+/* ホームの入口 */
+.cta-rush {
+  position: relative; display: flex; flex-direction: column; gap: 0; padding: 0 0 12px; border-radius: 20px; overflow: hidden; text-align: left;
+  background: radial-gradient(120% 140% at 85% 50%, #5a0018, #1a0108 60%, #0a0004);
+  box-shadow: 0 6px 0 #3a000c, 0 0 0 3px var(--blood), 0 12px 34px rgba(255, 34, 68, .45), inset 0 0 40px rgba(255, 0, 40, .25);
+  transition: transform .06s, box-shadow .06s;
+}
+.cta-rush::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .04) 0 2px, transparent 2px 4px); pointer-events: none; }
+.cta-rush:active { transform: translateY(5px); box-shadow: 0 1px 0 #3a000c, 0 0 0 3px var(--blood); }
+.cr-band { display: block; background: repeating-linear-gradient(45deg, #ffd23f 0 14px, #1a0b2e 14px 28px); padding: 3px 0; overflow: hidden; }
+.cr-band i { display: block; font: 400 11px/1.5 var(--f-num); font-style: normal; color: #fff; background: #c8001a; white-space: nowrap; animation: marquee 6s linear infinite; }
+.cr-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px 0; }
+.cr-skull { font-size: 40px; filter: drop-shadow(0 0 12px var(--blood)); animation: skullThrob 1.2s ease-in-out infinite; }
+.cr-txt { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.cr-main { font: 400 clamp(26px, 7.4vw, 36px)/1 var(--f-num); color: #fff; text-shadow: 2px 0 0 #ff0033, -2px 0 0 #00e5ff, var(--tel-s); letter-spacing: .04em; animation: glitch 2.8s steps(1) infinite; }
+.cr-sub { font-size: 12px; color: #ffb3bd; }
+.cr-sub b { font-family: var(--f-num); font-weight: 400; color: #fff; font-size: 14px; }
+.cr-faces { display: flex; flex: none; }
+.cr-faces i { font-style: normal; font-size: 30px; margin-left: -6px; filter: drop-shadow(0 0 6px var(--blood)) brightness(.9); }
+.cta-rush.locked { filter: grayscale(.7) brightness(.7); }
+.cta-rush.locked .cr-main { animation: none; }
+@keyframes skullThrob { 50% { transform: scale(1.12); filter: drop-shadow(0 0 20px var(--blood)); } }
+@keyframes glitch { 0%, 86%, 100% { transform: none; } 88% { transform: translate(2px, -1px) skewX(-8deg); } 90% { transform: translate(-3px, 1px); text-shadow: -3px 0 0 #ff0033, 3px 0 0 #00e5ff, var(--tel-s); } 92% { transform: none; } }
+
+/* ボスラッシュ画面 */
+#scr-rush { background: radial-gradient(120% 70% at 50% 0%, #3a0012, var(--abyss) 60%); }
+#scr-rush .topbar h2 { font-family: var(--f-num); color: #ff6b7c; letter-spacing: .06em; }
+.rush-hero { position: relative; text-align: center; padding: 8px 4px 14px; }
+.rh-title { position: relative; display: inline-block; font: 400 clamp(46px, 15vw, 88px)/1 var(--f-num); color: #fff; text-shadow: 0 0 24px var(--blood), var(--tel); letter-spacing: .03em; transform: rotate(-3deg); }
+.rh-title::before, .rh-title::after { content: attr(data-text); position: absolute; inset: 0; text-shadow: none; pointer-events: none; }
+.rh-title::before { color: #ff0033; clip-path: inset(0 0 55% 0); animation: glitchA 2.2s steps(1) infinite; }
+.rh-title::after { color: #00e5ff; clip-path: inset(60% 0 0 0); animation: glitchB 2.6s steps(1) infinite; }
+@keyframes glitchA { 0%, 80%, 100% { transform: none; opacity: 0; } 82% { transform: translate(-4px, -2px); opacity: .9; } 86% { transform: translate(3px, 0); opacity: .9; } 90% { opacity: 0; } }
+@keyframes glitchB { 0%, 70%, 100% { transform: none; opacity: 0; } 72% { transform: translate(4px, 2px); opacity: .9; } 76% { transform: translate(-2px, 0); opacity: .9; } 80% { opacity: 0; } }
+.rh-sub { margin-top: 10px; font-size: 13px; line-height: 1.6; color: #ffd0d6; }
+.rh-prog { display: flex; align-items: center; gap: 8px; margin: 12px auto 0; max-width: 420px; font: 400 12px var(--f-num); color: #ffb3bd; }
+.rh-bar { flex: 1; height: 12px; border-radius: 99px; background: #2a0010; box-shadow: inset 0 0 0 2px #5a0018; overflow: hidden; }
+.rh-bar i { display: block; height: 100%; background: linear-gradient(90deg, #ff2244, #ffd23f); box-shadow: 0 0 10px var(--blood); }
+.rh-prog b { font: 400 22px var(--f-num); color: #fff; }
+.rh-prog small { font-size: 12px; color: #ffb3bd; }
+.rh-note { margin-top: 8px; font-size: 11px; color: #c99aa4; }
+.rh-note b { color: #fff; font-family: var(--f-num); font-weight: 400; }
+
+.rush-tier { margin-top: 16px; }
+.rush-tier h3 { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin: 0 0 8px; padding: 8px 12px; border-radius: 12px; background: linear-gradient(90deg, color-mix(in srgb, var(--tc) 30%, #12010a), transparent); box-shadow: inset 3px 0 0 var(--tc); }
+.rt-name { font: 400 18px/1 var(--f-disp); color: #fff; text-shadow: var(--tel-s); }
+.rt-sub { font-size: 12px; color: color-mix(in srgb, var(--tc) 60%, #fff); }
+.rt-cnt { margin-left: auto; font: 400 13px var(--f-num); color: #ffd0d6; }
+.danger { font-size: 12px; color: #ff4d6d; letter-spacing: -1px; text-shadow: 0 0 6px var(--blood); }
+.danger i { font-style: normal; color: #3a1020; text-shadow: none; }
+.rt-lock { margin: 0 0 8px; padding: 6px 12px; border-radius: 10px; background: rgba(0, 0, 0, .35); font-size: 12px; color: #c99aa4; }
+.rush-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+@media (max-width: 380px) { .rush-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.rboss {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 8px 12px; border-radius: 16px; overflow: hidden;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--bc) 30%, #2a0010), #12010a 75%);
+  box-shadow: 0 4px 0 #050002, inset 0 0 0 2px color-mix(in srgb, var(--bc) 60%, #3a0010); transition: transform .06s;
+}
+.rboss:active { transform: translateY(3px); }
+.rb-no { align-self: flex-start; font: 400 10px var(--f-num); color: #ff8a9a; }
+.rb-ava { font-size: 46px; line-height: 1.1; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--bc) 80%, transparent)); font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+.rb-title { font-size: 10px; color: color-mix(in srgb, var(--bc) 55%, #fff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.rb-name { font: 400 13px/1.2 var(--f-disp); text-align: center; min-height: 2.4em; display: grid; place-items: center; }
+.rb-hp { font: 400 11px var(--f-num); color: #ff9aa5; }
+.rb-st { margin-top: 2px; padding: 1px 8px; border-radius: 99px; background: rgba(0, 0, 0, .45); font-size: 10px; color: #ffd0d6; }
+.rb-st.new { color: var(--gold); }
+.rb-st.win { background: var(--gold); color: #3a2400; }
+.rb-best { position: absolute; left: 10px; right: 10px; bottom: 5px; height: 3px; border-radius: 9px; background: #3a0010; overflow: hidden; }
+.rb-best i { display: block; height: 100%; background: var(--blood); }
+.rb-stamp { position: absolute; right: 6px; top: 26px; padding: 2px 6px; border: 3px solid var(--gold); border-radius: 8px; color: var(--gold); font: 400 16px/1 var(--f-disp); transform: rotate(14deg); opacity: .9; text-shadow: 0 0 8px rgba(255, 210, 63, .6); }
+.rboss.beaten .rb-ava { filter: grayscale(.3); }
+.rboss.gate { grid-column: 1 / -1; box-shadow: 0 4px 0 #050002, inset 0 0 0 3px color-mix(in srgb, var(--bc) 80%, #ff2244), 0 0 18px rgba(255, 34, 68, .3); }
+.rboss.gate .rb-ava { font-size: 60px; }
+.rb-gate { position: absolute; right: 10px; top: 8px; padding: 1px 8px; border-radius: 6px; background: var(--blood); font: 400 10px/1.6 var(--f-num); color: #fff; }
+.rboss.final { grid-column: 1 / -1; padding: 16px 8px; box-shadow: 0 4px 0 #050002, inset 0 0 0 3px var(--blood), 0 0 30px rgba(255, 34, 68, .5); }
+.rboss.final .rb-ava { font-size: 72px; animation: skullThrob 1.6s ease-in-out infinite; }
+.rboss.final .rb-name { font-size: 18px; min-height: 0; }
+.rush-tier.locked .rboss { filter: grayscale(1) brightness(.45); }
+.rush-all { margin: 18px auto 0; padding: 14px; border-radius: 16px; text-align: center; background: linear-gradient(180deg, #2a1400, #120800); box-shadow: inset 0 0 0 2px #6b4a00; }
+.rush-all.done { box-shadow: inset 0 0 0 3px var(--gold), 0 0 24px rgba(255, 210, 63, .4); }
+.ra-t { font: 400 16px var(--f-disp); color: var(--gold); }
+.ra-rw { margin: 6px 0; }
+.ra-s { font-size: 12px; color: #d9c08a; }
+
+/* ボス詳細 */
+.boss-modal { background: linear-gradient(180deg, #2a0010, #0e0106); box-shadow: 0 0 0 3px var(--blood), 0 20px 60px rgba(255, 0, 40, .35); }
+.bd-head { position: relative; text-align: center; padding: 4px 0 10px; }
+.bd-no { font: 400 11px var(--f-num); color: #ff8a9a; letter-spacing: .06em; }
+.bd-ava { font-size: 84px; line-height: 1.1; filter: drop-shadow(0 0 22px var(--bc)); animation: skullThrob 1.8s ease-in-out infinite; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+.bd-title { font-size: 12px; color: color-mix(in srgb, var(--bc) 55%, #fff); }
+.bd-name { font: 400 clamp(22px, 6.5vw, 30px)/1.15 var(--f-disp); text-shadow: var(--tel), 0 0 18px var(--bc); }
+.bd-quote { margin-top: 6px; font-size: 12px; color: #ffd0d6; }
+.bd-stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 12px; color: #c99aa4; }
+.bd-stats b { font: 400 16px var(--f-num); color: #fff; }
+.bd-abil { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.ba { padding: 7px 10px; border-radius: 12px; background: rgba(0, 0, 0, .35); box-shadow: inset 3px 0 0 var(--k, #ff4d6d); font-size: 13px; }
+.ba-k { display: inline-block; margin-right: 6px; padding: 0 7px; border-radius: 6px; background: var(--k, #ff4d6d); color: #12010a; font: 400 10px/1.6 var(--f-num); }
+.ba p { margin: 3px 0 0; font-size: 12px; line-height: 1.5; color: #f0d8dd; font-weight: 700; }
+.ba.pas { --k: #ff8a3d; } .ba.ult { --k: #ff2244; } .ba.ult .ba-k { color: #fff; } .ba.awk { --k: #c46bff; }
+.bd-cards-h { margin: 12px 0 6px; font-size: 12px; color: #ffb3bd; text-align: center; }
+.bd-cards { display: flex; justify-content: center; gap: 10px; }
+.bd-cards .card { --w: min(40vw, 150px); cursor: pointer; }
+.bd-rec { margin-top: 10px; text-align: center; font-size: 12px; color: #c99aa4; }
+.bd-rec .win { color: var(--gold); }
+.rush-go { background: linear-gradient(180deg, #ff5a6e, #c8001a); box-shadow: 0 5px 0 #4a0008, 0 0 20px rgba(255, 34, 68, .6); }
+
+/* リザルト */
+.rs-title.rush { font-size: clamp(32px, 9.5vw, 48px); }
+.rs-title.rush.win { color: #fff; text-shadow: var(--tel), 0 0 30px var(--blood), 0 0 60px var(--gold); }
+.rs-boss { display: flex; align-items: center; gap: 10px; margin: 8px 0; padding: 8px 12px; border-radius: 14px; background: rgba(0, 0, 0, .3); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--bc) 60%, transparent); text-align: left; }
+.rsb-ava { font-size: 42px; }
+.rsb-name { font: 400 15px var(--f-disp); }
+.rsb-line { font-size: 12px; color: #ffd0d6; }
+.rs-dmg { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; margin: 6px 0; font-size: 12px; color: var(--mute); text-align: left; }
+.rs-dmg > span { grid-column: 1 / -1; }
+.rs-dbar { position: relative; height: 14px; border-radius: 99px; background: #2a0010; box-shadow: inset 0 0 0 2px #5a0018; }
+.rs-dbar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ff2244, #ffd23f); box-shadow: 0 0 10px var(--blood); }
+.rs-dbar em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #fff; box-shadow: 0 0 4px #fff; }
+.rs-dmg b { font: 400 22px var(--f-num); color: #fff; }
+.rs-nb { grid-column: 1 / -1; color: var(--gold); font-family: var(--f-disp); animation: badgeBob .8s ease-in-out infinite; }
+.rs-allclear { margin: 8px 0; padding: 10px; border-radius: 12px; background: linear-gradient(90deg, #5a3a00, #2a1400); box-shadow: inset 0 0 0 2px var(--gold); font: 400 15px var(--f-disp); color: var(--gold); }
+
+/* ---- ボスラッシュのバトル画面 ---- */
+.battle-stage.rush::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(120% 60% at 50% 0%, rgba(255, 34, 68, .22), transparent 60%), repeating-linear-gradient(0deg, rgba(255, 0, 40, .035) 0 2px, transparent 2px 5px); }
+.battle-stage.rush.awakened::before { background: radial-gradient(120% 70% at 50% 0%, rgba(255, 34, 68, .38), transparent 65%), radial-gradient(140% 100% at 50% 50%, transparent 55%, rgba(255, 0, 40, .3)), repeating-linear-gradient(0deg, rgba(255, 0, 40, .05) 0 2px, transparent 2px 5px); animation: awakePulse 1.6s ease-in-out infinite; }
+@keyframes awakePulse { 50% { opacity: .65; } }
+.battle-stage.rush .board { box-shadow: inset 0 0 0 2px rgba(255, 34, 68, .35), inset 0 0 50px rgba(60, 0, 10, .6); }
+.hero-e.boss-hud .hero-ava { box-shadow: 0 0 0 3px var(--bc, var(--blood)), 0 0 22px var(--blood); animation: bossAura 1.8s ease-in-out infinite; }
+.hero-e.boss-hud .hero-name { font-size: 15px; color: #fff; text-shadow: var(--tel-s), 0 0 10px var(--bc, var(--blood)); }
+.hero-e.boss-hud .hpbar { height: 18px; box-shadow: inset 0 0 0 2px #6b0018, 0 0 10px rgba(255, 34, 68, .4); }
+.hero-e.boss-hud .hp-fill { background: linear-gradient(180deg, #ff6b7c, #e8001c 60%, #8a0012); }
+@keyframes bossAura { 50% { box-shadow: 0 0 0 3px var(--bc, var(--blood)), 0 0 36px var(--blood), 0 0 60px rgba(255, 34, 68, .4); } }
+.boss-title { font: 400 9px/1 var(--f-num); color: #ff8a9a; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-marks { position: absolute; inset: 0; pointer-events: none; }
+.hp-marks i { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 6px #fff, 0 0 10px var(--blood); }
+.hp-marks i.passed { background: #5a0018; box-shadow: none; }
+.boss-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ult-chip { min-width: 0; flex: 0 1 auto; padding: 2px 8px; border-radius: 99px; background: #2a0010; box-shadow: inset 0 0 0 2px #8a0018; font-size: 10px; color: #ffb3bd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ult-chip b { color: #fff; font-weight: 800; }
+.ult-chip em { font-style: normal; font-family: var(--f-num); color: var(--gold); }
+.ult-chip.soon { background: #c8001a; color: #fff; box-shadow: 0 0 0 2px var(--gold), 0 0 16px var(--blood); animation: reachBlink .45s steps(2) infinite; }
+.ult-chip.soon em { color: #fff36b; }
+.phase-chip { flex: none; padding: 1px 7px; border-radius: 6px; background: linear-gradient(90deg, #c46bff, #ff2244); font: 400 10px/1.5 var(--f-disp); color: #fff; box-shadow: 0 0 10px rgba(196, 107, 255, .6); }
+.pop-ex { font: 400 34px/1 var(--f-num); color: #fff; text-shadow: var(--tel), 0 0 18px var(--blood), 0 0 40px var(--blood); }
+.b-break .banner-main { font-size: clamp(48px, 15vw, 130px); color: #fff; text-shadow: var(--tel), 0 0 30px var(--blood), 0 0 70px var(--gold); }
+.b-break { --c: var(--blood); }
+
+/* 登場演出 */
+.boss-intro { position: absolute; inset: 0; z-index: 600; overflow: hidden; background: #050003; animation: fadeIn .15s; transition: opacity .3s; }
+.boss-intro.out { opacity: 0; }
+.bi-scan { position: absolute; inset: 0; background: radial-gradient(80% 50% at 50% 48%, color-mix(in srgb, var(--bc) 40%, #3a0010), transparent 70%), repeating-linear-gradient(0deg, rgba(255, 0, 40, .08) 0 2px, transparent 2px 5px); opacity: 0; animation: biGlow .8s 1.2s ease-out forwards; }
+@keyframes biGlow { to { opacity: 1; } }
+@keyframes appear { to { opacity: 1; } }
+@keyframes fadeOut { to { opacity: 0; } }
+.bi-band { position: absolute; left: -10%; right: -10%; z-index: 3; background: repeating-linear-gradient(45deg, #ffd23f 0 22px, #1a0b2e 22px 44px); padding: 6px 0; overflow: hidden; }
+.bi-band span { display: block; background: #c8001a; font: 400 16px/1.5 var(--f-num); color: #fff; white-space: nowrap; animation: marquee 5s linear infinite; }
+.bi-band.top { top: 7%; transform: rotate(-4deg); animation: biBandL .4s cubic-bezier(.2, 1.2, .4, 1) backwards; }
+.bi-band.bot { bottom: 9%; transform: rotate(-4deg); animation: biBandR .4s .1s cubic-bezier(.2, 1.2, .4, 1) backwards; }
+.bi-band.bot span { animation-direction: reverse; }
+@keyframes biBandL { from { translate: -110% 0; } }
+@keyframes biBandR { from { translate: 110% 0; } }
+.bi-warn { position: absolute; left: 50%; top: 50%; translate: -50% -50%; font: 400 clamp(54px, 17vw, 140px)/1 var(--f-num); color: #ff2244; text-shadow: 0 0 30px #ff0033, var(--tel); animation: biWarn 1.2s steps(1) forwards; z-index: 2; }
+@keyframes biWarn { 0%, 20%, 40%, 60% { opacity: 1; } 10%, 30%, 50% { opacity: .15; } 80%, 100% { opacity: 0; } }
+.bi-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 16px; text-align: center; z-index: 4; }
+.bi-no { font: 400 clamp(11px, 3vw, 14px) var(--f-num); color: #ff8a9a; letter-spacing: .06em; opacity: 0; animation: appear .3s 1.2s forwards; }
+.bi-ava { font-size: clamp(100px, 32vw, 220px); line-height: 1.05; filter: drop-shadow(0 0 30px var(--bc)) brightness(0); transform: scale(.4); opacity: 0; animation: biAva 1s 1s cubic-bezier(.2, 1.1, .3, 1) forwards; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+@keyframes biAva { 40% { opacity: 1; filter: drop-shadow(0 0 30px var(--bc)) brightness(0); transform: scale(1.1); } 100% { opacity: 1; filter: drop-shadow(0 0 40px var(--bc)) brightness(1); transform: scale(1); } }
+.bi-title { font: 800 clamp(14px, 4vw, 20px)/1.3 var(--f-body); color: color-mix(in srgb, var(--bc) 50%, #fff); letter-spacing: .3em; opacity: 0; animation: biType .5s 1.45s steps(8) forwards; clip-path: inset(0 100% 0 0); }
+@keyframes biType { to { opacity: 1; clip-path: inset(0 0 0 0); } }
+.bi-name { font: 400 clamp(30px, 9.5vw, 64px)/1.1 var(--f-disp); color: #fff; text-shadow: var(--tel), 0 0 30px var(--bc), 0 0 60px var(--blood); opacity: 0; animation: biSlam .35s 1.75s cubic-bezier(.3, 1.6, .5, 1) forwards; }
+@keyframes biSlam { from { opacity: 0; transform: scale(3) rotate(-6deg); } to { opacity: 1; transform: scale(1) rotate(-3deg); } }
+.bi-hp { font: 400 14px var(--f-num); color: #ffb3bd; opacity: 0; animation: appear .3s 2.2s forwards; }
+.bi-hp b { font-size: 26px; color: #fff; text-shadow: 0 0 12px var(--blood); }
+.bi-hp span { color: #ff2244; letter-spacing: -2px; }
+.bi-quote { margin-top: 4px; max-width: 520px; padding: 6px 14px; border-radius: 12px; background: rgba(0, 0, 0, .55); box-shadow: inset 0 0 0 1px rgba(255, 34, 68, .5); font-size: clamp(12px, 3.4vw, 16px); color: #ffe0e4; opacity: 0; animation: appear .4s 2.5s forwards; }
+.boss-intro .vs-skip { z-index: 5; }
+
+/* 必殺技カットイン */
+.ult-cut { position: absolute; inset: 0; z-index: 500; display: flex; align-items: center; justify-content: center; gap: 4%; padding: 0 6%; pointer-events: none; background: radial-gradient(90% 40% at 50% 50%, color-mix(in srgb, var(--bc) 45%, #3a0010), rgba(5, 0, 3, .9) 80%); animation: fadeIn .15s; }
+.ult-cut.out { animation: fadeOut .22s forwards; }
+.uc-bar { position: absolute; left: 0; right: 0; height: 22%; background: #000; z-index: 1; }
+.uc-bar.top { top: 0; animation: ucTop .25s ease-out backwards; box-shadow: 0 4px 0 #ff2244; }
+.uc-bar.bot { bottom: 0; animation: ucBot .25s ease-out backwards; box-shadow: 0 -4px 0 #ff2244; }
+@keyframes ucTop { from { transform: translateY(-100%); } }
+@keyframes ucBot { from { transform: translateY(100%); } }
+.uc-ava { position: relative; z-index: 2; font-size: clamp(90px, 28vw, 200px); filter: drop-shadow(0 0 30px var(--bc)); animation: ucAva .5s cubic-bezier(.2, 1.3, .4, 1) backwards; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+@keyframes ucAva { from { transform: translateX(-80vw) scale(1.4); } }
+.uc-txt { position: relative; z-index: 2; min-width: 0; max-width: 60%; }
+.uc-k { font: 400 clamp(12px, 3.4vw, 16px) var(--f-num); color: #ff6b7c; letter-spacing: .1em; animation: fadeIn .3s .2s backwards; }
+.uc-name { font: 400 clamp(26px, 8vw, 58px)/1.1 var(--f-disp); color: #fff; text-shadow: var(--tel), 0 0 26px #ff2244, 0 0 50px var(--bc); animation: biSlam .3s .45s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+.uc-desc { margin-top: 6px; font-size: clamp(11px, 3vw, 14px); line-height: 1.5; color: #ffd0d6; animation: fadeIn .3s .7s backwards; }
+
+/* 覚醒 */
+.awaken { position: absolute; inset: 0; z-index: 520; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 16px; text-align: center; pointer-events: none; background: radial-gradient(70% 50% at 50% 45%, rgba(255, 34, 68, .45), rgba(10, 0, 4, .92) 75%); animation: fadeIn .2s; }
+.awaken.out { animation: fadeOut .25s forwards; }
+.aw-crack { position: absolute; inset: 0; opacity: 0; animation: appear .1s .72s forwards; background:
+  linear-gradient(115deg, transparent 49.6%, rgba(255, 255, 255, .8) 49.8%, transparent 50.2%) 0 0 / 100% 100%,
+  linear-gradient(62deg, transparent 49.7%, rgba(255, 120, 140, .7) 49.9%, transparent 50.1%) 0 0 / 100% 100%,
+  linear-gradient(160deg, transparent 49.7%, rgba(255, 255, 255, .6) 49.85%, transparent 50%) 0 0 / 100% 100%; }
+.aw-ava { font-size: clamp(90px, 26vw, 180px); line-height: 1.1; filter: drop-shadow(0 0 30px #ff2244); animation: awAva 1.2s cubic-bezier(.3, 1.4, .5, 1) backwards, awShake .12s 1.2s 6; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+@keyframes awAva { 0% { transform: scale(.6); filter: brightness(0); } 55% { transform: scale(.7); filter: brightness(0) drop-shadow(0 0 30px #ff2244); } 62% { transform: scale(1.35); filter: brightness(3) drop-shadow(0 0 40px #fff); } 100% { transform: scale(1.15); } }
+@keyframes awShake { 50% { translate: 3px -2px; } }
+.aw-main { font: 400 clamp(56px, 17vw, 130px)/1 var(--f-disp); color: #fff; text-shadow: var(--tel), 0 0 30px #ff2244, 0 0 70px #c46bff; animation: biSlam .3s .75s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+.aw-name { font: 400 clamp(18px, 5.4vw, 30px) var(--f-disp); color: #ffd0d6; text-shadow: var(--tel-s); animation: fadeIn .3s 1s backwards; }
+.aw-line { margin-top: 6px; padding: 6px 14px; border-radius: 12px; background: rgba(0, 0, 0, .6); box-shadow: inset 0 0 0 2px var(--bc); font-size: clamp(13px, 3.6vw, 17px); color: #fff; animation: fadeIn .3s 1.2s backwards; }
+.aw-desc { font-size: 12px; color: #ffb3bd; animation: fadeIn .3s 1.4s backwards; }
+
 </style>
 </head>
 <body>
@@ -1123,6 +1344,7 @@ body.reduced .battle-stage.fever-on .board, body.reduced .combo[data-lv="4"], bo
     <section id="scr-missions" class="screen" hidden></section>
     <section id="scr-settings" class="screen" hidden></section>
     <section id="scr-shop" class="screen" hidden></section>
+    <section id="scr-rush" class="screen" hidden></section>
   </main>
   <div id="modal-root"></div>
   <canvas id="fx" aria-hidden="true"></canvas>
@@ -1440,6 +1662,26 @@ const Sound = (() => {
       noise({ f: 6000, dur: 1.0, vol: 0.12, q: 0.5 });
     },
     promote() { [79, 83, 86, 91, 95, 98].forEach((n, i) => tone({ note: n, type: 'square', dur: 0.08, vol: 0.08, when: i * 0.06 })); noise({ f: 1000, fEnd: 8000, dur: 0.4, vol: 0.18, q: 1 }); },
+    // ボスラッシュ用：警報・必殺技・覚醒
+    siren() {
+      for (let i = 0; i < 3; i++) {
+        tone({ freq: 620, type: 'sawtooth', dur: 0.32, vol: 0.09, slide: 1.45, when: i * 0.62, lp: 2600 });
+        tone({ freq: 900, type: 'sawtooth', dur: 0.3, vol: 0.09, slide: 0.69, when: i * 0.62 + 0.31, lp: 2600 });
+      }
+    },
+    ult() {
+      noise({ f: 300, fEnd: 5000, dur: 0.7, vol: 0.25, q: 0.7 });
+      tone({ freq: 60, type: 'sawtooth', dur: 0.9, vol: 0.35, slide: 2.2, lp: 900 });
+      tone({ freq: 55, type: 'sine', dur: 0.7, vol: 0.8, slide: 0.4, when: 0.7 });
+      noise({ f: 1500, fEnd: 100, dur: 0.8, vol: 0.5, filter: 'lowpass', when: 0.7 });
+      [50, 53, 57].forEach(n => tone({ note: n, type: 'square', dur: 0.9, vol: 0.06, when: 0.7, lp: 1600 }));
+    },
+    awaken() {
+      for (let i = 0; i < 10; i++) tone({ note: 48 + i * 2, type: 'square', dur: 0.08, vol: 0.06, when: i * 0.07, lp: 2400 });
+      tone({ freq: 40, type: 'sine', dur: 1.2, vol: 0.9, slide: 0.5, when: 0.72 });
+      noise({ f: 6000, fEnd: 200, dur: 1.2, vol: 0.45, q: 0.5, when: 0.72 });
+      [38, 45, 50, 53].forEach(n => tone({ note: n, type: 'sawtooth', dur: 1.3, vol: 0.05, when: 0.72, lp: 1200 }));
+    },
     claim() { SFX.coin(); [84, 88, 91, 96].forEach((n, i) => tone({ note: n, type: 'square', dur: 0.06, vol: 0.06, when: 0.08 + i * 0.04 })); },
   };
 
@@ -1476,6 +1718,21 @@ const Sound = (() => {
       kick: 'x..xx...x..xx...', snare: '....x.......x.xx', hat: 'xxxxxxxxxxxxxxxx', drumVol: 1,
       lead: [74, 74, 0, 77, 0, 81, 0, 77, 74, 0, 70, 0, 74, 77, 0, 74, 70, 70, 0, 74, 0, 79, 0, 74, 73, 0, 76, 0, 79, 0, 81, 0],
       leadType: 'square', leadVol: 0.035,
+    },
+    // ボスラッシュ：低いD#マイナーの重いリフ。覚醒後(rush2)はテンポと密度が上がる
+    rush: {
+      bpm: 156, chords: [[39, 'm'], [39, 'm'], [35, 'M'], [37, 'M']],
+      bass: '1.1.21.11.1.21.3', arp: '0.0.1.0.2.0.1.3.', arpType: 'sawtooth', arpOct: 24, arpVol: 0.02,
+      kick: 'x.x...x.x.x...x.', snare: '....x.......x...', hat: 'x.x.x.x.x.x.x.xx', drumVol: 1,
+      lead: [75, 0, 75, 74, 0, 70, 0, 0, 75, 0, 78, 0, 77, 75, 74, 0, 71, 0, 71, 70, 0, 66, 0, 0, 73, 0, 75, 0, 77, 0, 78, 0],
+      leadType: 'sawtooth', leadVol: 0.028,
+    },
+    rush2: {
+      bpm: 178, chords: [[39, 'm'], [42, 'M'], [35, 'M'], [37, 'M']],
+      bass: '1111211121112123', arp: '0123012301230123', arpType: 'sawtooth', arpOct: 24, arpVol: 0.022,
+      kick: 'x.xxx.x.x.xxx.x.', snare: '....x..x....x.xx', hat: 'xxxxxxxxxxxxxxxx', drumVol: 1.1,
+      lead: [87, 0, 86, 0, 82, 0, 87, 90, 0, 89, 87, 86, 0, 82, 0, 0, 83, 0, 82, 0, 78, 0, 83, 87, 0, 85, 83, 82, 85, 0, 87, 0],
+      leadType: 'square', leadVol: 0.03,
     },
     fever: {
       bpm: 172, chords: [[47, 'm'], [43, 'M'], [50, 'M'], [45, 'M']],
@@ -2532,7 +2789,10 @@ const B = {
       reachShown: false,
     };
     for (let i = 0; i < 4; i++) { this._rawDraw(0); this._rawDraw(1); }
+    for (let i = 4; i < (cfg.enemy.startHand || 4); i++) this._rawDraw(1);
     if (cfg.enemy.field && CARDS[cfg.enemy.field]) G.field = { def: CARDS[cfg.enemy.field], owner: 1 };
+    // ボスは取り巻きを最初から場に置いていることがある
+    (cfg.enemy.startUnits || []).forEach(([id, lane]) => { if (!G.P[1].board[lane]) G.P[1].board[lane] = this._mkUnit(1, id, lane); });
     return G;
   },
   _mkPlayer(c, idx) {
@@ -2545,6 +2805,8 @@ const B = {
       fever: 0, feverOn: false, feverEnabled: c.fever !== false, feverRate: c.feverRate ?? 1,
       critBonus: 0, extraCrit: c.extraCrit || 0,
       passive: c.passive || null, isAI: !!c.isAI, ai: c.ai || {},
+      // ボスラッシュ用：boss は読み取り専用の定義。状態（phase/ultCd）は数値で持つ（AIの盤面コピーで共有されないように）
+      boss: c.boss || null, phase: 0, ultEvery: 0, ultCd: c.boss && c.boss.ult ? c.boss.ult.first ?? c.boss.ult.every : 0,
       heroRef: { isHero: true, owner: idx },
     };
   },
@@ -2772,17 +3034,20 @@ const B = {
       if (!free.length) return null;
       lane = R.pick(free);
     }
-    const def = CARDS[id];
-    const u = {
-      uid: this._uid++, id, def, owner: pi, lane,
-      atk: def.atk, hp: def.hp, maxHp: def.hp, star: 1,
-      kw: new Set(def.kw.filter(k => k !== 'shield')), shield: def.kw.includes('shield'),
-      burn: 0, frozen: false, revived: false, removed: false, token: !!def.token, born: this.G.round,
-      count: def.countdown || 0,
-    };
+    const u = this._mkUnit(pi, id, lane);
     P.board[lane] = u;
     await this.V('summon', u, opts);
     return u;
+  },
+  _mkUnit(pi, id, lane) {
+    const def = CARDS[id];
+    return {
+      uid: this._uid++, id, def, owner: pi, lane,
+      atk: def.atk, hp: def.hp, maxHp: def.hp, star: 1,
+      kw: new Set(def.kw.filter(k => k !== 'shield')), shield: def.kw.includes('shield'),
+      burn: 0, frozen: false, revived: false, removed: false, token: !!def.token, born: this.G ? this.G.round : 0,
+      count: def.countdown || 0,
+    };
   },
   async _starUp(u, def) {
     if (!this.alive(u) || u.star >= 3) return false;
@@ -2935,6 +3200,104 @@ const B = {
     return v;
   },
 
+  /* ---------- ボスが使う特殊な効果 ---------- */
+  // ユニットを持ち主の手札に戻す（トークンは消える）
+  async bounce(u) {
+    if (!this.alive(u)) return;
+    const P = this.G.P[u.owner];
+    if (P.board[u.lane] === u) P.board[u.lane] = null;
+    u.removed = true;
+    await this.V('bounce', u);
+    if (u.token) return;
+    if (P.hand.length < HAND_MAX) P.hand.push({ uid: this._uid++, id: u.id });
+    else P.discard.push(u.id);
+    this.V('sync');
+  },
+  // ATKを下げる（0未満にはならない）
+  async debuff(u, a) {
+    if (!this.alive(u)) return;
+    const v = Math.min(a, u.atk);
+    u.atk -= v;
+    await this.V('debuff', u, v);
+  },
+  // 手札をランダムに捨てさせる
+  async discardRandom(pi, n) {
+    const P = this.G.P[pi];
+    for (let i = 0; i < n && P.hand.length; i++) {
+      const c = P.hand.splice(R.int(0, P.hand.length - 1), 1)[0];
+      if (!c.gift) P.discard.push(c.id);
+      await this.V('discardCard', pi, c);
+    }
+  },
+  // 墓地のユニットを空きマスに復活
+  async reviveFromGrave(pi, n, filter) {
+    const P = this.G.P[pi];
+    let k = 0;
+    for (let i = 0; i < n; i++) {
+      const lanes = this.emptyLanes(pi);
+      const pool = P.grave.filter(id => CARDS[id] && (!filter || filter(CARDS[id])));
+      if (!lanes.length || !pool.length) break;
+      const id = R.pick(pool);
+      P.grave.splice(P.grave.indexOf(id), 1);
+      await this.summon(pi, id, R.pick(lanes), { revive: true });
+      k++;
+    }
+    return k;
+  },
+  // 場のユニットの位置をばらばらに入れ替える
+  async shuffleBoard(pi) {
+    const P = this.G.P[pi], us = this.units(pi);
+    if (!us.length) return;
+    const lanes = R.shuffle([0, 1, 2, 3, 4].filter(l => !P.board[l] || this.alive(P.board[l])));
+    us.forEach(u => { P.board[u.lane] = null; });
+    const moves = us.map((u, i) => { const from = u.lane; u.lane = lanes[i]; P.board[u.lane] = u; return [u, from]; });
+    for (const [u, from] of moves) if (u.lane !== from) await this.V('move', u, from, { quick: true, shuffle: true });
+  },
+  // 手札のユニットをコストを払わずに出す
+  async summonFromHand(pi, n, filter) {
+    const P = this.G.P[pi];
+    for (let i = 0; i < n; i++) {
+      const lanes = this.emptyLanes(pi);
+      const cands = P.hand.filter(c => CARDS[c.id].type === 'unit' && (!filter || filter(CARDS[c.id]))).sort((a, b) => CARDS[b.id].cost - CARDS[a.id].cost);
+      if (!lanes.length || !cands.length) break;
+      const c = cands[0];
+      P.hand.splice(P.hand.indexOf(c), 1);
+      const u = await this.summon(pi, c.id, this.freeLane(pi, R.pick(lanes), false), { fromHand: true });
+      if (u && u.def.onPlay) await u.def.onPlay(this, u);
+      await this.processDeaths();
+    }
+  },
+  // ボス：HPがしきい値を下回ったら覚醒（安全なタイミングでまとめて処理）
+  async bossCheck() {
+    const G = this.G;
+    if (!G || G.over || G.bossBusy) return;
+    for (const P of G.P) {
+      const b = P.boss;
+      if (!b || !b.phases) continue;
+      while (P.phase < b.phases.length && P.hp > 0 && P.hp <= P.maxHp * b.phases[P.phase].at) {
+        const ph = b.phases[P.phase];
+        P.phase++;
+        G.bossBusy = true;
+        try {
+          await this.V('bossPhase', P.idx, P.phase, ph);
+          await ph.run(this, P.idx);
+          await this.processDeaths();
+        } finally { G.bossBusy = false; }
+      }
+    }
+  },
+  async bossUltimate(pi) {
+    const P = this.G.P[pi], u = P.boss && P.boss.ult;
+    if (!u) return;
+    P.ultCd--;
+    if (P.ultCd > 0) { this.V('sync'); return; }
+    await this.V('bossUlt', pi, u);
+    await u.run(this, pi);
+    await this.processDeaths();
+    P.ultCd = P.ultEvery || u.every;
+    this.V('sync');
+  },
+
   /* ---------- 演出付きランダム ---------- */
   async dice(u) { const n = R.int(1, 6); await this.V('dice', u, n); return n; },
   async coinFlip(pi, n) { const r = []; for (let i = 0; i < n; i++) r.push(R.chance(0.5)); await this.V('coins', pi, r); return r; },
@@ -2999,7 +3362,7 @@ const B = {
     if (pi === 0) G.round++;
     P.critBonus = 0;
     P.maxEnergy = Math.min(10, P.maxEnergy + 1);
-    P.energy = P.maxEnergy + P.energyBonus + (P.nextEnergy || 0);
+    P.energy = Math.max(0, P.maxEnergy + P.energyBonus + (P.nextEnergy || 0));
     P.nextEnergy = 0;
     await this.V('turnStart', pi, G.round);
     if (G.round >= 16 && pi === 0) {
@@ -3028,6 +3391,8 @@ const B = {
     }
     await this.processDeaths();
     if (P.passive && P.passive.turnStart) { await this.V('passive', pi, P.passive); await P.passive.turnStart(this, pi); await this.processDeaths(); }
+    if (P.boss) await this.bossUltimate(pi);
+    await this.bossCheck();
     this.V('sync');
   },
 
@@ -3041,6 +3406,7 @@ const B = {
       await this.processDeaths();
     }
     await this.attackPhase(pi);
+    await this.bossCheck();
     const st = G.stats[pi];
     st.maxTurnDamage = Math.max(st.maxTurnDamage, G.turnDamage);
     await this.V('turnSummary', pi, G.turnDamage, G.combo);
@@ -3099,6 +3465,7 @@ const B = {
     if (u.def.afterAttack && this.alive(u)) await u.def.afterAttack(this, u, info);
     await this.processDeaths();
     if (this.hasKw(u, 'warp') && this.alive(u)) await this.moveUnit(u, this.adjacentFree(u), { warp: true });
+    await this.bossCheck();
   },
 
   // このターン敵ヒーローに入りそうなダメージ（リーチ判定）
@@ -3217,6 +3584,7 @@ const B = {
     const f = G.field;
     if (f && f.def.fieldCardPlayed) await f.def.fieldCardPlayed(this, pi, f.owner);
     await this.processDeaths();
+    await this.bossCheck();
     this.V('sync');
     return true;
   },
@@ -3440,7 +3808,7 @@ const AI = {
       P: [cp(G.P[0]), cp(G.P[1])],
       stats: G.stats.map(x => Object.assign({}, x)),
       field: G.field ? Object.assign({}, G.field) : null,
-      busy: false,
+      busy: false, bossBusy: false,
     });
   },
   withG(B, G, fn) {
@@ -3788,6 +4156,411 @@ const STARTER_DECK = ['n_dog', 'n_dog', 'n_dog', 'n_chick', 'n_chick', 'n_cat', 
 </script>
 <script>
 'use strict';
+/* ===== ボスラッシュ：20体のボスと、ボスだけが使う特殊カード（EX） =====
+   ボスはそれぞれ
+   ・常時能力（毎ターン開始時）
+   ・必殺技（数ターンごと。発動までのカウントが画面に出る）
+   ・覚醒（HPが一定以下になると一度だけ発動し、戦い方が変わる）
+   ・専用のEXカード2種
+   を持つ。 */
+
+RARITY.EX = { name: 'EX', color: '#ff2a4d', rank: 5 };
+
+const foe = pi => 1 - pi;
+const strongest = (B, pi) => B.units(pi).sort((a, b) => B.atkOf(b) - B.atkOf(a));
+const unitPool = f => COLLECTIBLE.filter(c => c.type === 'unit' && f(c));
+async function giveCards(B, pi, ids) {
+  const P = B.P(pi);
+  for (const id of ids) {
+    if (P.hand.length >= HAND_MAX) break;
+    const c = { uid: B._uid++, id, gift: true };
+    P.hand.push(c);
+    await B.V('draw', pi, c, { gift: true });
+  }
+}
+async function summonMany(B, pi, id, n, opts) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const l = B.freeLane(pi, 2, true);
+    if (l == null) break;
+    out.push(await B.summon(pi, id, l, opts || {}));
+  }
+  return out.filter(Boolean);
+}
+
+/* ---------------- EXカード（ボス専用・入手不可） ---------------- */
+const BOSS_CARD_LIST = [
+  // 01 ガチャ神
+  { id: 'x_tenjo', name: '天井ガチャ', emoji: '🎰', tribe: 'lucky', type: 'spell', cost: 3, target: 'none',
+    text: 'ランダムなSSRかURのユニットを、空きマスに召喚する', ai: { t: 'custom' },
+    cast: async (B, pi) => {
+      const l = B.freeLane(pi, 2, true);
+      if (l == null) { await B.draw(pi, 1); return; }
+      await B.summon(pi, R.pick(unitPool(c => c.rarity === 'SSR' || c.rarity === 'UR')).id, l);
+    } },
+  { id: 'x_kakuritsu', name: '確率操作官', emoji: '🕴️', tribe: 'lucky', type: 'unit', cost: 3, atk: 30, hp: 40, kw: ['lucky'],
+    text: '味方がクリティカルを出すたび、敵ヒーローに20ダメージ',
+    onAllyCrit: async (B, u) => { await B.damage(u, B.hero(foe(u.owner)), 20, { fx: 'gold' }); } },
+  // 02 炎上インフルエンサー
+  { id: 'x_kakusan', name: '拡散希望', emoji: '📢', tribe: 'blaze', type: 'spell', cost: 2, target: 'none',
+    text: '敵ユニット全員に炎上2', ai: { t: 'aoe', v: 30 },
+    cast: async (B, pi) => { for (const e of B.units(foe(pi))) await B.burn(e, 2, B.hero(pi)); } },
+  { id: 'x_fan', name: '炎上ファン', emoji: '🙋', tribe: 'blaze', type: 'unit', cost: 2, atk: 30, hp: 20, kw: ['burnhit'],
+    text: '破壊時：敵ユニット全員に炎上1',
+    onDeath: async (B, u) => { for (const e of B.units(foe(u.owner))) await B.burn(e, 1, u); } },
+  // 03 徹夜の魔物
+  { id: 'x_enadori', name: 'エナドリ兵', emoji: '🥫', tribe: 'storm', type: 'unit', cost: 2, atk: 30, hp: 30,
+    text: '登場時：PP+1', onPlay: async (B, u) => { await B.gainEnergy(u.owner, 1); } },
+  { id: 'x_shinya', name: '深夜テンション', emoji: '🌃', tribe: 'storm', type: 'spell', cost: 2, target: 'none',
+    text: '味方全員のATK+20。ランダムな味方1体に連撃', ai: { t: 'buffAll', a: 20, h: 0 },
+    cast: async (B, pi) => { await B.buffAll(pi, 20, 0); const u = R.pick(B.units(pi)); if (u) B.giveKw(u, 'double'); } },
+  // 04 ウロボロス
+  { id: 'x_tail', name: '蛇の尾', emoji: '🪱', tribe: 'necro', type: 'unit', cost: 1, atk: 20, hp: 20, kw: ['undying'], text: '' },
+  { id: 'x_ring', name: 'ウロボロスの環', emoji: '⭕', tribe: 'necro', type: 'spell', cost: 3, target: 'none',
+    text: '自分の墓地のユニットを2体、空きマスに復活させる', ai: { t: 'custom' },
+    cast: async (B, pi) => { if (!(await B.reviveFromGrave(pi, 2))) await B.draw(pi, 1); } },
+  // 05 課金王
+  { id: 'x_kakin', name: '課金兵', emoji: '💳', tribe: 'mecha', type: 'unit', cost: 3, atk: 40, hp: 40, kw: ['shield'], text: '' },
+  { id: 'x_magic', name: '魔法のカード', emoji: '💴', tribe: 'lucky', type: 'spell', cost: 0, target: 'none',
+    text: 'PP+2。カードを1枚引く', ai: { t: 'custom' },
+    cast: async (B, pi) => { await B.gainEnergy(pi, 2); await B.draw(pi, 1); } },
+  // 06 通知の魔神
+  { id: 'x_badge', name: '通知バッジ', emoji: '🔴', tribe: 'storm', type: 'unit', cost: 1, atk: 10, hp: 10, kw: ['fly'],
+    text: '登場時：敵ヒーローに10ダメージ', onPlay: async (B, u) => { await B.damage(u, B.hero(foe(u.owner)), 10, { fx: 'bolt' }); } },
+  { id: 'x_push', name: 'プッシュ通知', emoji: '📳', tribe: 'storm', type: 'spell', cost: 2, target: 'none',
+    text: 'ランダムな敵（ユニットかヒーロー）に20ダメージを4回', ai: { t: 'aoe', v: 30 },
+    cast: async (B, pi) => {
+      for (let i = 0; i < 4; i++) { await B.damage(B.spellSrc(pi), B.randomEnemy(pi, R.chance(0.35)), 20, { fx: 'bolt' }); await B.processDeaths(); }
+    } },
+  // 07 推しの亡霊
+  { id: 'x_penlight', name: 'ペンライト隊', emoji: '🪄', tribe: 'sugar', type: 'unit', cost: 2, atk: 20, hp: 30,
+    text: '登場時：味方全員のATK+10', onPlay: async (B, u) => { await B.buffAll(u.owner, 10, 0); } },
+  { id: 'x_kyokyu', name: '推しの供給', emoji: '💝', tribe: 'sugar', type: 'spell', cost: 3, target: 'allyUnit',
+    text: '味方1体に+40/+40とシールド', ai: { t: 'buff', a: 40, h: 40 },
+    cast: async (B, pi, t) => { await B.buff(t, 40, 40); B.giveShield(t); } },
+  // 08 リールの帝王
+  { id: 'x_buzz', name: 'バズ動画', emoji: '🎬', tribe: 'blaze', type: 'unit', cost: 2, atk: 20, hp: 20, kw: ['double'], text: '' },
+  { id: 'x_osusume', name: 'おすすめ欄', emoji: '📜', tribe: 'storm', type: 'spell', cost: 1, target: 'none',
+    text: 'カードを2枚引く', ai: { t: 'draw', v: 2 }, cast: async (B, pi) => { await B.draw(pi, 2); } },
+  // 09 ブラック企業
+  { id: 'x_shachiku', name: '社畜ロボ', emoji: '🦾', tribe: 'mecha', type: 'unit', cost: 2, atk: 30, hp: 30,
+    text: '破壊時：ランダムな味方1体に+20/+20', onDeath: async (B, u) => { const a = R.pick(B.units(u.owner)); if (a) await B.buff(a, 20, 20); } },
+  { id: 'x_kyujitsu', name: '休日出勤', emoji: '📅', tribe: 'risk', type: 'spell', cost: 2, target: 'none',
+    text: '味方全員に+20/+10', ai: { t: 'buffAll', a: 20, h: 10 }, cast: async (B, pi) => { await B.buffAll(pi, 20, 10); } },
+  // 10 ループス
+  { id: 'x_guardian', name: '時限ガーディアン', emoji: '🛡️', tribe: 'chrono', type: 'unit', cost: 3, atk: 30, hp: 50, countdown: 2,
+    text: 'カウント2：敵ユニット全員に40ダメージ',
+    onCountdown: async (B, u) => { await B.damageMany(u, B.units(foe(u.owner)), 40, { fx: 'quake' }); } },
+  { id: 'x_rewind', name: '巻き戻しの砂', emoji: '⌛', tribe: 'chrono', type: 'spell', cost: 2, target: 'enemyUnit',
+    text: '敵ユニット1体を手札に戻す', ai: { t: 'freeze' }, cast: async (B, pi, t) => { await B.bounce(t); } },
+  // 11 虚無の王
+  { id: 'x_shadow', name: '虚無の影', emoji: '👤', tribe: 'solo', type: 'unit', cost: 5, atk: 60, hp: 60,
+    text: '他に味方がいない時、飛行と連撃を得る', dynKw: (B, u) => (B.units(u.owner).length <= 1 ? ['fly', 'double'] : []) },
+  { id: 'x_blank', name: '空白', emoji: '⬛', tribe: 'solo', type: 'spell', cost: 3, target: 'enemyUnit',
+    text: '敵ユニット1体を破壊する', ai: { t: 'dmgUnit', v: 999 }, cast: async (B, pi, t) => { await B.annihilate(B.spellSrc(pi), [t]); } },
+  // 12 錬金術師
+  { id: 'x_homun', name: 'ホムンクルス', emoji: '🧪', tribe: 'mimic', type: 'unit', cost: 3, atk: 30, hp: 30,
+    text: '登場時：正面の敵ユニットに変身して+20/+20。いなければ+30/+30',
+    onPlay: async (B, u) => { const o = B.oppositeOf(u); if (o && !o.def.token) { await B.transform(u, o.id); await B.buff(u, 20, 20); } else await B.buff(u, 30, 30); } },
+  { id: 'x_rensei', name: '錬成陣', emoji: '🔯', tribe: 'mimic', type: 'spell', cost: 3, target: 'none',
+    text: 'ランダムなSSRユニットを2枚、手札に加える', ai: { t: 'draw', v: 2 },
+    cast: async (B, pi) => { const pool = unitPool(c => c.rarity === 'SSR'); await giveCards(B, pi, [R.pick(pool).id, R.pick(pool).id]); } },
+  // 13 電脳の女帝
+  { id: 'x_drone', name: 'ドローン', emoji: '🛸', tribe: 'mecha', type: 'unit', cost: 1, atk: 10, hp: 10, kw: ['fly'], text: '' },
+  { id: 'x_firewall', name: 'ファイアウォール', emoji: '🧱', tribe: 'mecha', type: 'spell', cost: 2, target: 'none',
+    text: '味方全員にシールド', ai: { t: 'custom' }, cast: async (B, pi) => { for (const u of B.units(pi)) B.giveShield(u); } },
+  // 14 嫉妬の魔獣
+  { id: 'x_netami', name: '妬み蛇', emoji: '🐍', tribe: 'risk', type: 'unit', cost: 2, atk: 20, hp: 40,
+    text: '正面の敵ユニットのATKぶん、ATKが上がる', atkMod: (B, u) => { const o = B.oppositeOf(u); return o ? o.atk : 0; } },
+  { id: 'x_yokodori', name: '横取り', emoji: '🫳', tribe: 'risk', type: 'spell', cost: 2, target: 'enemyUnit',
+    text: '敵ユニット1体のATKを0にし、そのぶんランダムな味方1体のATKを上げる', ai: { t: 'freeze' },
+    cast: async (B, pi, t) => { const v = t.atk; await B.debuff(t, v); const a = R.pick(B.units(pi)); if (a && v) await B.buff(a, v, 0); } },
+  // 15 終焉の時計塔
+  { id: 'x_byoshin', name: '秒針の騎士', emoji: '🗡️', tribe: 'chrono', type: 'unit', cost: 2, atk: 30, hp: 30, countdown: 2,
+    text: 'カウント2：敵ヒーローに50ダメージ',
+    onCountdown: async (B, u) => { await B.damage(u, B.hero(foe(u.owner)), 50, { fx: 'laser' }); } },
+  { id: 'x_timebomb', name: '時限爆弾', emoji: '💣', tribe: 'chrono', type: 'unit', cost: 3, atk: 0, hp: 40, countdown: 3,
+    text: 'カウント3：敵ユニット全員と敵ヒーローに80ダメージ',
+    onCountdown: async (B, u) => { B.explode(u); await B.damageMany(u, [...B.units(foe(u.owner)), B.hero(foe(u.owner))], 80, { fx: 'fire' }); } },
+  // 16 深淵の観測者
+  { id: 'x_tentacle', name: '深淵の触手', emoji: '🦑', tribe: 'warp', type: 'unit', cost: 3, atk: 40, hp: 40, kw: ['warp', 'chain'], text: '' },
+  { id: 'x_tenni', name: '虚空転移', emoji: '🌀', tribe: 'warp', type: 'spell', cost: 1, target: 'none',
+    text: '自分のユニット全員を正面が空いたマスへワープさせ、ATK+10', ai: { t: 'buffAll', a: 10, h: 0 },
+    cast: async (B, pi) => { await B.warpAllToOpen(pi); await B.buffAll(pi, 10, 0); } },
+  // 17 道化師
+  { id: 'x_trump', name: 'トランプ兵', emoji: '🃏', tribe: 'lucky', type: 'unit', cost: 2, atk: 30, hp: 30, kw: ['lucky'], text: '' },
+  { id: 'x_dice', name: 'イカサマダイス', emoji: '🎲', tribe: 'lucky', type: 'spell', cost: 2, target: 'none',
+    text: 'サイコロを振り、出目×20ダメージを敵ヒーローに', ai: { t: 'custom' },
+    cast: async (B, pi) => { const n = await B.dice(B.hero(pi)); await B.damage(B.spellSrc(pi), B.hero(foe(pi)), n * 20, { fx: 'gold' }); } },
+  // 18 冥府の大司教
+  { id: 'x_deathknight', name: '死霊騎士', emoji: '🏇', tribe: 'necro', type: 'unit', cost: 4, atk: 50, hp: 40, kw: ['undying', 'drain'], text: '' },
+  { id: 'x_harvest', name: '魂の収穫', emoji: '🌾', tribe: 'necro', type: 'spell', cost: 3, target: 'none',
+    text: '敵ユニット全員に20ダメージ。倒した数×30、自分のヒーローを回復', ai: { t: 'aoe', v: 20 },
+    cast: async (B, pi) => {
+      const es = B.units(foe(pi));
+      await B.damageMany(B.spellSrc(pi), es, 20, { fx: 'dark' });
+      const k = es.filter(e => !B.alive(e)).length;
+      if (k) await B.heal(B.hero(pi), k * 30);
+    } },
+  // 19 時空王
+  { id: 'x_gatekeeper', name: '次元の門番', emoji: '🚪', tribe: 'warp', type: 'unit', cost: 4, atk: 40, hp: 60, kw: ['warp', 'shield'], text: '' },
+  { id: 'x_zerocount', name: 'ゼロ・カウント', emoji: '0️⃣', tribe: 'chrono', type: 'unit', cost: 3, atk: 30, hp: 30, countdown: 1,
+    text: 'カウント1：敵ユニット全員に60ダメージ',
+    onCountdown: async (B, u) => { await B.damageMany(u, B.units(foe(u.owner)), 60, { fx: 'laser' }); } },
+  // 20 ドーパミン神
+  { id: 'x_apostle', name: '脳汁の使徒', emoji: '👼', tribe: 'neutral', type: 'unit', cost: 5, atk: 40, hp: 40, kw: ['fly', 'drain'], text: '' },
+  { id: 'x_flood', name: '快楽の洪水', emoji: '🌊', tribe: 'neutral', type: 'spell', cost: 6, target: 'none',
+    text: '敵ユニット全員と敵ヒーローに50ダメージ', ai: { t: 'aoe', v: 50 },
+    cast: async (B, pi) => { await B.damageMany(B.spellSrc(pi), [...B.units(foe(pi)), B.hero(foe(pi))], 50, { fx: 'meteor' }); } },
+];
+BOSS_CARD_LIST.forEach(c => { c.kw = c.kw || []; c.rarity = 'EX'; c.bossCard = true; CARD_LIST.push(c); CARDS[c.id] = c; });
+
+/* ---------------- 20体のボス ---------------- */
+const BOSS_TIERS = [
+  { tier: 1, name: '第一階層', sub: '欲望の門', color: '#ff8a3d' },
+  { tier: 2, name: '第二階層', sub: '快楽の回廊', color: '#ff3d8b' },
+  { tier: 3, name: '第三階層', sub: '虚無の深淵', color: '#a978ff' },
+  { tier: 4, name: '最終階層', sub: '脳髄の玉座', color: '#ff2244' },
+];
+
+const BOSS_LIST = [
+  /* ===== 第一階層 ===== */
+  { no: 1, name: 'ガチャ神ルーレット', title: '確率の支配者', avatar: '🎰', color: '#ffd23f', hp: 330, tribes: ['lucky', 'neutral'],
+    cards: ['x_tenjo', 'x_kakuritsu'], extraCrit: 0.1,
+    quote: '確率は平等だと思ったか？ ここではワタシが確率だ', win: '爆死おつかれさま♪', lose: 'ば、ばかな…天井まで回したのに…',
+    passive: { name: 'イカサマコイン', text: 'ターン開始時、コインを2枚投げ、表1枚につきあなたのランダムなユニット（いなければヒーロー）に20ダメージ',
+      turnStart: async (B, pi) => { const r = await B.coinFlip(pi, 2); for (const h of r) if (h) await B.damage(B.hero(pi), B.randomEnemy(pi), 20, { fx: 'gold' }); } },
+    ult: { name: '確定演出', every: 4, first: 3, text: 'スロット777確定！ あなたのユニット全員とヒーローに70ダメージ', run: async (B, pi) => { await B.slotMachine(pi, true); } },
+    phases: [{ at: 0.5, name: 'SSR確定!!', line: 'ここからが本番…虹色の確定演出だ！', text: 'ランダムなSSRユニット2体を召喚',
+      run: async (B, pi) => { for (let i = 0; i < 2; i++) { const l = B.freeLane(pi, 2, true); if (l != null) await B.summon(pi, R.pick(unitPool(c => c.rarity === 'SSR')).id, l); } } }] },
+  { no: 2, name: '炎上インフルエンサー', title: '燃え広がる女王', avatar: '🤳', color: '#ff6a3d', hp: 500, tribes: ['blaze'],
+    cards: ['x_kakusan', 'x_fan'],
+    quote: 'あなたの悪いところ、全部拡散してあげる♡', win: '今日のトレンド1位はあなたの敗北よ', lose: 'アカウント…凍結…？',
+    passive: { name: '燃料投下', text: 'ターン開始時、あなたのユニット全員に炎上1',
+      turnStart: async (B, pi) => { for (const e of B.units(foe(pi))) await B.burn(e, 1, B.hero(pi)); } },
+    ult: { name: '大炎上', every: 3, text: 'あなたのユニットに（炎上値×20）ダメージ。さらにヒーローに（燃えているユニット数×20＋30）ダメージ',
+      run: async (B, pi) => {
+        const es = B.units(foe(pi)); const n = es.filter(e => e.burn > 0).length;
+        for (const e of es) if (e.burn > 0) await B.damage(B.hero(pi), e, e.burn * 20, { fx: 'fire' });
+        await B.processDeaths();
+        await B.damage(B.hero(pi), B.hero(foe(pi)), n * 20 + 30, { fx: 'fire' });
+      } },
+    phases: [{ at: 0.5, name: 'バズり覚醒', line: 'いいねが…止まらないッ!!', text: 'フィールド「灼熱火山」を展開し、自分のユニット全員のATK+20',
+      run: async (B, pi) => { if (B.G.field) B.G.P[B.G.field.owner].discard.push(B.G.field.def.id); B.G.field = { def: CARDS.b_volcano, owner: pi }; await B.V('field', B.G.field); await B.buffAll(pi, 20, 0); } }] },
+  { no: 3, name: '徹夜の魔物ネムラーズ', title: '眠らない夜', avatar: '🦇', color: '#38e1ff', hp: 320, tribes: ['storm', 'neutral'],
+    cards: ['x_enadori', 'x_shinya'],
+    quote: '寝かせないよ…朝まで、ずっと', win: 'おやすみ…永遠にね', lose: 'zzz……はっ、朝!?',
+    passive: { name: '寝落ち', text: 'ターン開始時、あなたのいちばんATKが高いユニットを凍結',
+      turnStart: async (B, pi) => { const t = strongest(B, foe(pi))[0]; if (t) await B.freeze(t); } },
+    ult: { name: '夜明けの絶望', every: 3, text: 'あなたの手札をランダムに2枚捨てさせ、ヒーローに30ダメージ',
+      run: async (B, pi) => { await B.discardRandom(foe(pi), 2); await B.damage(B.hero(pi), B.hero(foe(pi)), 30, { fx: 'dark' }); } },
+    phases: [{ at: 0.5, name: 'オールナイト', line: 'エナドリ追加！ 夜はこれからだァ!!', text: '「エナドリ兵」を2体召喚し、PP+2',
+      run: async (B, pi) => { await summonMany(B, pi, 'x_enadori', 2); await B.gainEnergy(pi, 2); } }] },
+  { no: 4, name: 'スクロール大蛇ウロボロス', title: '終わらない蛇', avatar: '🐍', color: '#8dff4f', hp: 330, tribes: ['necro', 'mecha'],
+    cards: ['x_tail', 'x_ring'],
+    quote: '終わりなどない。お前の指は、永遠にスクロールし続ける', win: 'ほら、また最初からだ', lose: '尾が…尾が切れた…',
+    passive: { name: '無限スクロール', text: 'ターン開始時、カードを1枚多く引く', turnStart: async (B, pi) => { await B.draw(pi, 1); } },
+    ult: { name: '無限ループ', every: 4, first: 3, text: '墓地のユニットを3体復活させ、それぞれ+10/+10',
+      run: async (B, pi) => { const before = new Set(B.units(pi).map(u => u.uid)); await B.reviveFromGrave(pi, 3); for (const u of B.units(pi)) if (!before.has(u.uid)) await B.buff(u, 10, 10, { quick: true }); } },
+    phases: [{ at: 0.45, name: '脱皮', line: '古い皮を脱ぎ捨てる…まだ終わらんぞ', text: 'ヒーローHPを150回復し、自分のユニット全員にシールド',
+      run: async (B, pi) => { await B.heal(B.hero(pi), 150); for (const u of B.units(pi)) B.giveShield(u); } }] },
+  { no: 5, name: '課金王ゴルドラ', title: '札束の暴君', avatar: '🤑', color: '#ffcc33', hp: 340, tribes: ['lucky', 'mecha'],
+    cards: ['x_kakin', 'x_magic'], energyBonus: 1,
+    quote: '強さは金で買える。それがこの世の真理だ', win: '無課金にしては頑張ったな', lose: 'カードの…限度額が……',
+    passive: { name: '重課金', text: '毎ターンPPが1多い', turnStart: null },
+    ult: { name: '札束ビンタ', every: 3, text: 'あなたのヒーローに（ボスの手札の枚数×15）ダメージ',
+      run: async (B, pi) => { await B.damage(B.hero(pi), B.hero(foe(pi)), Math.max(30, B.P(pi).hand.length * 15), { fx: 'gold' }); } },
+    phases: [{ at: 0.5, name: '追い課金', line: 'まだだ！ 天井まで回せェ!!', text: 'カードを3枚引き、PP+3',
+      run: async (B, pi) => { await B.draw(pi, 3); await B.gainEnergy(pi, 3); } }] },
+
+  /* ===== 第二階層 ===== */
+  { no: 6, name: '通知の魔神ピコーン', title: '鳴り止まぬ鐘', avatar: '🔔', color: '#38e1ff', hp: 360, tribes: ['storm'],
+    cards: ['x_badge', 'x_push'], startHand: 5,
+    quote: 'ピコン。ピコン。ピコン。…ほら、気になるだろう？', win: '未読999+', lose: '通知を…オフに…された…',
+    passive: { name: 'ピコン×3', text: 'ターン開始時、ランダムな敵に20ダメージを3回',
+      turnStart: async (B, pi) => { for (let i = 0; i < 3; i++) { await B.damage(B.hero(pi), B.randomEnemy(pi), 20, { fx: 'bolt' }); await B.processDeaths(); } } },
+    ult: { name: '既読スルー', every: 3, text: 'あなたのユニット全員に20ダメージを与えて凍結',
+      run: async (B, pi) => { const es = B.units(foe(pi)); await B.damageMany(B.hero(pi), es, 20, { fx: 'bolt' }); for (const e of es) await B.freeze(e); } },
+    phases: [{ at: 0.5, name: '通知オン', line: 'すべての通知を、オンにした', text: '自分のユニット全員が連鎖を得て、「通知バッジ」を2体召喚',
+      run: async (B, pi) => { for (const u of B.units(pi)) B.giveKw(u, 'chain'); await summonMany(B, pi, 'x_badge', 2); } }] },
+  { no: 7, name: '推しの亡霊アイドラ', title: '永遠のセンター', avatar: '🎤', color: '#ff7ac8', hp: 480, tribes: ['sugar', 'necro'],
+    cards: ['x_penlight', 'x_kyokyu'], startHand: 5,
+    quote: 'あなたの推しは、わ・た・し。そうでしょ？', win: 'ずっと応援してね♡', lose: '卒業…します…',
+    passive: { name: '推しへの愛', text: 'ターン開始時、自分のユニット全員に+10/+10', turnStart: async (B, pi) => { await B.buffAll(pi, 10, 10); } },
+    ult: { name: '限界オタクの絶叫', every: 3, text: 'あなたのユニット全員とヒーローに（ボスの墓地の数×10＋20）ダメージ（最大80）',
+      run: async (B, pi) => { const d = Math.min(80, B.P(pi).grave.length * 10 + 20); await B.damageMany(B.hero(pi), [...B.units(foe(pi)), B.hero(foe(pi))], d, { fx: 'dark' }); } },
+    phases: [{ at: 0.5, name: '推し変', line: 'あなたの一番の子…わたしにちょうだい？', text: 'あなたのいちばんATKが高いユニットを奪う',
+      run: async (B, pi) => { const t = strongest(B, foe(pi))[0]; if (t) await B.steal(t, pi); } }] },
+  { no: 8, name: 'ショート動画の帝王リール', title: '15秒の暴君', avatar: '📲', color: '#ff3d8b', hp: 400, tribes: ['storm', 'blaze'],
+    cards: ['x_buzz', 'x_osusume'], startHand: 5,
+    quote: '長い話はいらない。15秒で終わらせてやる', win: '次の動画へスワイプ', lose: '再生数が…伸びない…',
+    passive: { name: '倍速視聴', text: 'ターン開始時、自分のユニット全員が連撃を得る',
+      turnStart: async (B, pi) => { for (const u of B.units(pi)) if (!u.kw.has('double')) B.giveKw(u, 'double'); } },
+    ult: { name: '無限リール', every: 4, first: 3, text: '手札のユニットを2体、コストを払わずに出す', run: async (B, pi) => { await B.summonFromHand(pi, 2); } },
+    phases: [{ at: 0.5, name: 'アルゴリズム最適化', line: 'おすすめに載った…もう誰にも止められない', text: 'カードを2枚引き、PP+3',
+      run: async (B, pi) => { await B.draw(pi, 2); await B.gainEnergy(pi, 3); } }] },
+  { no: 9, name: 'ブラック社長クロガネ', title: '定時を破壊する者', avatar: '👔', color: '#6dffb3', hp: 400, tribes: ['mecha', 'risk'],
+    cards: ['x_shachiku', 'x_kyujitsu'], startHand: 5,
+    quote: '定時？ そんな言葉は辞書にない', win: '明日も朝7時集合な', lose: '労基…だと…!?',
+    passive: { name: 'サービス残業', text: 'ターン開始時、ボスのHPを10払い、自分のユニット全員のATK+10',
+      turnStart: async (B, pi) => { await B.payHp(pi, 10); await B.buffAll(pi, 10, 0); } },
+    ult: { name: 'リストラ', every: 3, text: 'あなたのいちばんATKが高いユニットを破壊し、ヒーローに30ダメージ',
+      run: async (B, pi) => { const t = strongest(B, foe(pi))[0]; if (t) await B.annihilate(B.hero(pi), [t]); await B.damage(B.hero(pi), B.hero(foe(pi)), 30, { fx: 'dark' }); } },
+    phases: [{ at: 0.5, name: '全社員出社', line: '有給？ 却下だ！ 全員出社しろ！', text: '空きマスすべてに「社畜ロボ」を召喚',
+      run: async (B, pi) => { await summonMany(B, pi, 'x_shachiku', 5); } }] },
+  { no: 10, name: '時の番人ループス', title: '同じ日を繰り返す者', avatar: '♾️', color: '#e0a96d', hp: 480, tribes: ['chrono', 'neutral'],
+    cards: ['x_guardian', 'x_rewind'], startHand: 5,
+    quote: 'また会ったね。…君にとっては、初めてか', win: 'もう一回。何度でも', lose: 'ループが…ほどけていく…',
+    passive: { name: '時間加速', text: 'ターン開始時、自分のカウント中のユニットのカウントがさらに1進む',
+      turnStart: async (B, pi) => { for (const u of B.units(pi)) if (u.count > 0) await B.tickCount(u); } },
+    ult: { name: 'タイムリープ', every: 3, text: 'あなたのユニット全員を手札に戻す',
+      run: async (B, pi) => { for (const u of B.units(foe(pi))) await B.bounce(u); } },
+    phases: [{ at: 0.5, name: '時よ止まれ', line: '君の時間だけ、少し遅らせておこう', text: 'あなたは次のターン、PPが2少ない。ボスのカウント中のユニットのカウントが1進む',
+      run: async (B, pi) => { B.P(foe(pi)).nextEnergy = (B.P(foe(pi)).nextEnergy || 0) - 2; await B.V('say', foe(pi), '次のターンPP-2', '#ff4d6d'); for (const u of B.units(pi)) if (u.count > 0) await B.tickCount(u); } }] },
+
+  /* ===== 第三階層 ===== */
+  { no: 11, name: '虚無の王ニヒル', title: '何も感じない者', avatar: '🕳️', color: '#9bb8e0', hp: 560, tribes: ['solo', 'necro'],
+    cards: ['x_shadow', 'x_blank'], startHand: 5,
+    quote: '楽しい？ 嬉しい？ …くだらない', win: '……虚しい', lose: 'ああ…これが…“感じる”ということか',
+    passive: { name: '無気力', text: 'ターン開始時、あなたのユニット全員のATK-10',
+      turnStart: async (B, pi) => { for (const e of B.units(foe(pi))) await B.debuff(e, 10); } },
+    ult: { name: '虚無', every: 3, text: '場のすべてのユニットを破壊する（ボスのユニットも）',
+      run: async (B, pi) => { await B.annihilate(B.hero(pi), B.allUnits()); } },
+    phases: [{ at: 0.5, name: '虚無の化身', line: '何もかも、無に還れ', text: '「虚無の影」を召喚し、シールドを与える',
+      run: async (B, pi) => { const [u] = await summonMany(B, pi, 'x_shadow', 1); if (u) B.giveShield(u); } }] },
+  { no: 12, name: '錬金術師アルケミ', title: '快楽を精製する者', avatar: '⚗️', color: '#b8f04a', hp: 530, tribes: ['mimic', 'sugar'],
+    cards: ['x_homun', 'x_rensei'], startHand: 5,
+    quote: '君の脳汁、純度100%に精製してあげよう', win: '実験成功。素晴らしいサンプルだった', lose: '計算が…合わない…',
+    passive: { name: '錬成', text: 'ターン開始時、自分のランダムなユニット1体に+20/+20とシールド',
+      turnStart: async (B, pi) => { const u = R.pick(B.units(pi)); if (u) { await B.buff(u, 20, 20); B.giveShield(u); } } },
+    ult: { name: '黄金錬成', every: 3, text: 'あなたのATKが高いユニット2体を「ぴよぴよ」に変える',
+      run: async (B, pi) => { for (const t of strongest(B, foe(pi)).filter(u => u.id !== 'tk_chick').slice(0, 2)) await B.transform(t, 'tk_chick'); } },
+    phases: [{ at: 0.5, name: '賢者の石', line: 'ついに完成した…賢者の石だ！', text: '自分のユニット全員の★が1つ上がる',
+      run: async (B, pi) => { for (const u of B.units(pi)) await B.upgrade(u); } }] },
+  { no: 13, name: '電脳の女帝サイバーナ', title: 'ネットの支配者', avatar: '🦾', color: '#2ee6ff', hp: 430, tribes: ['mecha', 'storm'],
+    cards: ['x_drone', 'x_firewall'], startUnits: [['x_drone', 1], ['x_drone', 3]],
+    quote: 'あなたの検索履歴、すべて把握しています', win: 'ログアウトを推奨します', lose: 'システム…ダウン……',
+    passive: { name: '自動生産', text: 'ターン開始時、空きマスに「ドローン」を1体召喚', turnStart: async (B, pi) => { await summonMany(B, pi, 'x_drone', 1); } },
+    ult: { name: 'ハッキング', every: 3, text: 'あなたのいちばんATKが高いユニットを奪う',
+      run: async (B, pi) => { const t = strongest(B, foe(pi))[0]; if (t) await B.steal(t, pi); } },
+    phases: [{ at: 0.5, name: '全システム起動', line: '防衛プロトコル、全開放', text: '自分のユニット全員に+20/+0とシールド',
+      run: async (B, pi) => { await B.buffAll(pi, 20, 0); for (const u of B.units(pi)) B.giveShield(u); } }] },
+  { no: 14, name: '嫉妬の魔獣ジェラシア', title: '隣の芝の怪物', avatar: '🐊', color: '#ff3a5c', hp: 440, tribes: ['risk', 'blaze'],
+    cards: ['x_netami', 'x_yokodori'], startHand: 5,
+    quote: 'ずるい…ずるいずるい！ あんたのそれ、全部ちょうだい', win: 'これで全部わたしのもの', lose: '…うらやましかっただけなのに',
+    passive: { name: '隣の芝は青い', text: 'ターン開始時、自分のユニットのATKが、あなたのいちばん高いATKより低ければ同じにする',
+      turnStart: async (B, pi) => { const t = strongest(B, foe(pi))[0]; if (!t) return; const top = B.atkOf(t); for (const u of B.units(pi)) { const a = B.atkOf(u); if (a < top) await B.buff(u, top - a, 0, { quick: true }); } } },
+    ult: { name: '妬みの業火', every: 3, text: 'あなたのユニット全員に、それぞれのATKと同じダメージ',
+      run: async (B, pi) => { for (const e of B.units(foe(pi))) await B.damage(B.hero(pi), e, B.atkOf(e), { fx: 'fire' }); await B.processDeaths(); } },
+    phases: [{ at: 0.5, name: '羨望の鏡', line: 'あんたの一番いい子、2匹にしちゃった♪', text: 'あなたのいちばん強いユニットのコピーを2体召喚',
+      run: async (B, pi) => { const t = strongest(B, foe(pi)).find(u => !u.def.token); if (t) await summonMany(B, pi, t.id, 2, { copy: true }); } }] },
+  { no: 15, name: '終焉の時計塔クロノス', title: '残り時間を刻む者', avatar: '🕰️', color: '#e0a96d', hp: 470, tribes: ['chrono'],
+    cards: ['x_byoshin', 'x_timebomb'], startHand: 5,
+    quote: '君の残り時間は、あと少しだ', win: '…タイムアップ', lose: '針が…止まった…',
+    passive: { name: '刻限', text: 'ターン開始時、自分のカウント中のユニットのカウントがさらに1進む',
+      turnStart: async (B, pi) => { for (const u of B.units(pi)) if (u.count > 0) await B.tickCount(u); } },
+    ult: { name: '時の審判', every: 4, text: 'あなたのヒーローに100ダメージ（覚醒後は2ターンごと）',
+      run: async (B, pi) => { await B.damage(B.hero(pi), B.hero(foe(pi)), 100, { fx: 'laser' }); } },
+    phases: [{ at: 0.5, name: '時間加速', line: '時計の針を、早めよう', text: '必殺技がすぐ来る（次のターンに発動、以後2ターンごと）',
+      run: async (B, pi) => { const P = B.P(pi); P.ultCd = 1; P.ultEvery = 2; } }] },
+
+  /* ===== 最終階層 ===== */
+  { no: 16, name: '深淵の観測者アビス', title: '見つめ返す深淵', avatar: '🌑', color: '#8a8cff', hp: 650, tribes: ['warp', 'solo'],
+    cards: ['x_tentacle', 'x_tenni'], startHand: 5,
+    quote: '深淵を覗くとき、深淵もまた――お前を見ている', win: 'もう、目を逸らせない', lose: '光が…まぶしい……',
+    passive: { name: '狂気の視線', text: 'ターン開始時、あなたのユニットの位置をばらばらに入れ替える', turnStart: async (B, pi) => { await B.shuffleBoard(foe(pi)); } },
+    ult: { name: '深淵の眼差し', every: 3, text: 'あなたのATKが高いユニット2体を破壊する',
+      run: async (B, pi) => { await B.annihilate(B.hero(pi), strongest(B, foe(pi)).slice(0, 2)); } },
+    phases: [{ at: 0.5, name: '深淵の翼', line: 'さあ、もっと深くへ', text: '自分のユニット全員が飛行を得る',
+      run: async (B, pi) => { for (const u of B.units(pi)) B.giveKw(u, 'fly'); } }] },
+  { no: 17, name: '狂乱の道化師ジョーカー', title: '笑う災厄', avatar: '🤡', color: '#ffd23f', hp: 540, tribes: ['lucky', 'mimic'],
+    cards: ['x_trump', 'x_dice'], startHand: 5,
+    quote: 'ヒャハハ！ ショーの始まりだ！ 結末？ 知らないよォ！', win: 'ブラボー！ 最高のオチだったよ！', lose: 'ハハ…今日の客は…手強い…',
+    passive: { name: '運命のルーレット', text: 'ターン開始時ルーレット：あなたに40ダメージ／自分のユニット全員+20/+20／あなたのユニット1体破壊／カード2枚ドロー',
+      turnStart: async (B, pi) => {
+        const i = await B.roulette(pi, ['💥 40ダメージ', '💪 全員+20/+20', '☠ 1体破壊', '🃏 2枚ドロー']);
+        if (i === 0) await B.damage(B.hero(pi), B.hero(foe(pi)), 40, { fx: 'gold' });
+        else if (i === 1) await B.buffAll(pi, 20, 20);
+        else if (i === 2) { const t = R.pick(B.units(foe(pi))); if (t) await B.annihilate(B.hero(pi), [t]); else await B.damage(B.hero(pi), B.hero(foe(pi)), 40, { fx: 'gold' }); }
+        else await B.draw(pi, 2);
+      } },
+    ult: { name: 'ビックリ箱の大惨事', every: 3, text: 'あなたのユニット全員をコスト1〜2のユニットに、ボスのユニット全員をコスト5〜7のユニットに変身させる',
+      run: async (B, pi) => {
+        const lo = unitPool(c => c.cost <= 2), hi = unitPool(c => c.cost >= 5 && c.cost <= 7 && c.rarity !== 'UR');
+        for (const e of B.units(foe(pi))) await B.transform(e, R.pick(lo).id);
+        for (const u of B.units(pi)) await B.transform(u, R.pick(hi).id);
+      } },
+    phases: [{ at: 0.5, name: 'ジョーカー・ワイルド', line: '手札は全部ジョーカーだァ！', text: '手札をすべてランダムなSSRカードに変える',
+      run: async (B, pi) => {
+        const P = B.P(pi), n = Math.max(3, P.hand.length), pool = COLLECTIBLE.filter(c => c.rarity === 'SSR');
+        P.hand.length = 0; await giveCards(B, pi, Array.from({ length: n }, () => R.pick(pool).id));
+      } }] },
+  { no: 18, name: '冥府の大司教モルテ', title: '死を統べる者', avatar: '☠️', color: '#a978ff', hp: 900, tribes: ['necro'],
+    cards: ['x_deathknight', 'x_harvest'], startUnits: [['tk_bone', 0], ['tk_bone', 4]],
+    quote: '死は終わりではない。我が軍門への入口だ', win: 'ようこそ、我が軍勢へ', lose: '死すら…超えるというのか…',
+    passive: { name: '死者の招き', text: 'ターン開始時、空きマスに「ホネホネ」を2体召喚', turnStart: async (B, pi) => { await summonMany(B, pi, 'tk_bone', 2); } },
+    ult: { name: '死者の行進', every: 3, text: '墓地のユニットを空きマスすべてに復活させる', run: async (B, pi) => { await B.reviveFromGrave(pi, 5); } },
+    phases: [{ at: 0.5, name: '不死の軍勢', line: '立て、我が兵よ。何度でも', text: '自分のユニット全員が不死を得る',
+      run: async (B, pi) => { for (const u of B.units(pi)) { u.revived = false; B.giveKw(u, 'undying'); } } }] },
+  { no: 19, name: '時空王ゼロ', title: 'すべての軸を束ねる者', avatar: '🪐', color: '#8a8cff', hp: 540, tribes: ['chrono', 'warp', 'mimic', 'risk', 'solo'],
+    cards: ['x_gatekeeper', 'x_zerocount'], startHand: 5,
+    quote: '時間、位置、姿、代償、孤独――すべては我が掌の上', win: 'ゼロに還れ', lose: '軸が…崩れる……',
+    passive: { name: '五つの軸', text: 'ターン開始時ルーレット：カウント進行／あなたのユニットをワープ／あなたのユニット1体をぴよぴよ化／HP20払い全員ATK+20／最強ユニット+40/+40',
+      turnStart: async (B, pi) => {
+        const i = await B.roulette(pi, ['⏳ 時間', '🌀 位置', '🎭 姿', '💔 代償', '🌙 孤独']);
+        if (i === 0) { for (const u of B.units(pi)) if (u.count > 0) await B.tickCount(u); }
+        else if (i === 1) { const t = R.pick(B.units(foe(pi))); const l = R.pick(B.emptyLanes(foe(pi))); if (t && l != null) await B.moveUnit(t, l, { push: true }); }
+        else if (i === 2) { const t = R.pick(B.units(foe(pi)).filter(u => u.id !== 'tk_chick')); if (t) await B.transform(t, 'tk_chick'); }
+        else if (i === 3) { await B.payHp(pi, 20); await B.buffAll(pi, 20, 0); }
+        else { const u = strongest(B, pi)[0]; if (u) await B.buff(u, 40, 40); }
+      } },
+    ult: { name: '次元崩壊', every: 4, first: 3, text: 'あなたのユニットをすべて破壊し、破壊した数×30ダメージをあなたのヒーローに',
+      run: async (B, pi) => { const es = B.units(foe(pi)); await B.annihilate(B.hero(pi), es); await B.damage(B.hero(pi), B.hero(foe(pi)), Math.max(20, es.length * 30), { fx: 'laser' }); } },
+    phases: [{ at: 0.5, name: 'ゼロ・リセット', line: '世界を、ゼロから書き換える', text: '手札が6枚になるまで引き、PP+4',
+      run: async (B, pi) => { const P = B.P(pi); await B.draw(pi, Math.max(0, 6 - P.hand.length)); await B.gainEnergy(pi, 4); } }] },
+  { no: 20, name: 'ドーパミン神ドパミネス', title: '脳汁の創造主', avatar: '🧬', color: '#ff3d8b', hp: 480, tribes: ['blaze', 'storm', 'sugar', 'necro', 'lucky', 'mecha'],
+    cards: ['x_apostle', 'x_flood'], startHand: 5,
+    quote: 'よくぞここまで来た。その快楽、すべて我が糧としよう', win: '快楽に溺れ、眠るがいい', lose: 'これが…人の…意志……!',
+    passive: { name: '過剰分泌', text: 'ターン開始時、あなたのヒーローに20ダメージ。自分のランダムなユニット1体に+10/+10',
+      turnStart: async (B, pi) => { await B.damage(B.hero(pi), B.hero(foe(pi)), 20, { fx: 'dark' }); const u = R.pick(B.units(pi)); if (u) await B.buff(u, 10, 10); } },
+    ult: { name: 'ドーパミン・オーバードーズ', every: 3, first: 4, text: 'あなたのヒーローに80ダメージ。あなたのユニット全員を凍結',
+      run: async (B, pi) => { await B.damage(B.hero(pi), B.hero(foe(pi)), 80, { fx: 'laser' }); for (const e of B.units(foe(pi))) await B.freeze(e); } },
+    phases: [
+      { at: 0.66, name: '第二形態', line: 'ほう…少しは楽しませてくれる', text: '「脳汁の使徒」を1体召喚し、カードを2枚引く',
+        run: async (B, pi) => { await summonMany(B, pi, 'x_apostle', 1); await B.draw(pi, 2); } },
+      { at: 0.33, name: '真の姿', line: '見せてやろう…神の、真の姿を!!', text: '自分のユニット全員に+30/+30。必殺技が次のターンに発動し、以後2ターンごと',
+        run: async (B, pi) => { await B.buffAll(pi, 30, 30); const P = B.P(pi); P.ultCd = 1; P.ultEvery = 2; } },
+    ] },
+];
+const BOSSES = {};
+BOSS_LIST.forEach(b => { b.id = 'br' + String(b.no).padStart(2, '0'); b.tier = Math.ceil(b.no / 5); BOSSES[b.id] = b; });
+
+// ボスのデッキ：専用EXカード（ユニット3枚・スペル2枚ずつ）＋高レベルの属性デッキ
+// 難易度のつまみ（tools/rushsim.js で勝率を見ながら調整）
+const BOSS_TUNE = { level: [4, 5, 6, 7], hpMul: [1, 1, 1, 1] };
+const RUSH_PLAYER_HP = 450; // ボスラッシュではあなたのHPが多い（そのぶんボスも強い）
+function bossDeck(b) {
+  const sig = [];
+  b.cards.forEach(id => { for (let i = 0; i < (CARDS[id].type === 'unit' ? 3 : 2); i++) sig.push(id); });
+  const base = makeDeck(b.tribes, BOSS_TUNE.level[b.tier - 1], hashStr(b.id));
+  return [...base.slice(0, 20 - sig.length), ...sig];
+}
+
+function rushConfig(id) {
+  const b = BOSSES[id];
+  return {
+    name: b.name, avatar: b.avatar, hp: Math.round(b.hp * BOSS_TUNE.hpMul[b.tier - 1] / 10) * 10, isAI: true,
+    deck: bossDeck(b),
+    ai: { mistake: 0, depth: 3, width: 10 },
+    passive: b.passive, boss: b, field: b.field || null,
+    fever: true, feverRate: 1, energyBonus: b.energyBonus || 0, extraCrit: b.extraCrit || 0,
+    startEnergy: b.startEnergy || 1, startHand: b.startHand || 4, startUnits: b.startUnits || [],
+  };
+}
+
+</script>
+<script>
+'use strict';
 /* ===== セーブ・成長・ガチャ・ミッション ===== */
 
 const SAVE_KEY = 'dopaburst_save_v1';
@@ -3839,6 +4612,7 @@ const Meta = {
       records: { turnDamage: 0, combo: 0 },
       life: { wins: 0, battles: 0, crits: 0, merges: 0, kills: 0 },
       flags: {}, newCards: [],
+      rush: { wins: {}, tries: {}, best: {}, fastest: {}, allClear: false },
     };
   },
   load() {
@@ -4076,6 +4850,48 @@ const Meta = {
     return m.reward;
   },
 
+  /* ---------- ボスラッシュ ---------- */
+  rushUnlocked() { return this.stageMask('1-4') > 0; },
+  rushTierOpen(tier) {
+    if (tier <= 1) return true;
+    return BOSS_LIST.some(b => b.tier === tier - 1 && this.rushWins(b.id) > 0);
+  },
+  rushWins(id) { return this.save.rush.wins[id] || 0; },
+  rushDefeated() { return BOSS_LIST.filter(b => this.rushWins(b.id) > 0).length; },
+  rushFirstReward(b) { return { coins: 400 + b.no * 60, premium: b.tier, tickets: b.tier >= 3 ? 2 : 1 }; },
+  RUSH_ALL_REWARD: { coins: 10000, premium: 10, tickets: 10 },
+  rushResult(id, res) {
+    const b = BOSSES[id], s = this.save, rs = s.rush;
+    const out = { coins: 0, xp: 0, firstClear: false, bonus: null, allClear: false };
+    this.trackBattle(res);
+    rs.tries[id] = (rs.tries[id] || 0) + 1;
+    const pct = Math.round(Math.min(1, 1 - res.enemyHp / res.enemyMaxHp) * 100);
+    out.pct = pct;
+    out.bestBefore = rs.best[id] || 0;
+    out.newBest = pct > out.bestBefore;
+    rs.best[id] = Math.max(out.bestBefore, pct);
+    if (!res.win) {
+      // 負けても、削ったぶんだけコインがもらえる（あと少し！を味わえるように）
+      out.coins = 30 + Math.round(pct * (1 + b.tier * 0.5));
+      out.xp = 30 + b.tier * 10;
+      s.coins += out.coins;
+    } else {
+      out.firstClear = !rs.wins[id];
+      rs.wins[id] = (rs.wins[id] || 0) + 1;
+      out.fastest = !rs.fastest[id] || res.rounds < rs.fastest[id];
+      if (out.fastest) rs.fastest[id] = res.rounds;
+      out.coins = 250 + b.no * 25;
+      out.xp = 120 + b.tier * 40;
+      if (out.firstClear) { const f = this.rushFirstReward(b); out.coins += f.coins; out.bonus = { premium: f.premium, tickets: f.tickets }; this.grant(out.bonus); }
+      if (!rs.allClear && this.rushDefeated() >= BOSS_LIST.length) { rs.allClear = true; out.allClear = true; this.grant(this.RUSH_ALL_REWARD); }
+      s.coins += out.coins;
+      this.winExtras(out);
+    }
+    out.levelUps = this.gainXP(out.xp);
+    this.persist();
+    return out;
+  },
+
   /* ---------- ランク戦 ---------- */
   rankResult(res, rival) {
     const s = this.save, rk = s.rank;
@@ -4218,9 +5034,11 @@ const BUI = {
           <div class="hero hero-e" data-p="1">
             <div class="hero-ava" data-p="1"><span></span><div class="reach">リーチ!</div></div>
             <div class="hero-body">
+              <div class="boss-title" hidden></div>
               <div class="hero-name"></div>
-              <div class="hpbar"><i class="hp-ghost"></i><i class="hp-fill"></i><span class="hp-num"></span></div>
+              <div class="hpbar"><i class="hp-ghost"></i><i class="hp-fill"></i><span class="hp-marks"></span><span class="hp-num"></span></div>
               <div class="hero-sub"><span class="ehand"></span><span class="edeck"></span><span class="epassive"></span></div>
+              <div class="boss-row" hidden><button type="button" class="ult-chip"></button><span class="phase-chip"></span></div>
             </div>
             <div class="e-fever" hidden><i></i><span>FEVER</span></div>
           </div>
@@ -4316,16 +5134,95 @@ const BUI = {
     this.layout();
     this.sync();
     $('.e-fever', this.root).hidden = !cfg.enemy.fever;
+    this.setupBoss(cfg);
     $('.epassive', this.root).innerHTML = cfg.enemy.passive ? `<button type="button" class="passive-chip">⚠ ${esc(cfg.enemy.passive.name)}</button>` : '';
     const pc = $('.passive-chip', this.root);
     if (pc) pc.addEventListener('click', () => this.strip(`<div class="dt-head"><span class="dt-name">⚠ ${esc(cfg.enemy.passive.name)}</span></div><div class="dt-text">${esc(cfg.enemy.passive.text)}</div>`));
     this.updateSpeedBtn();
-    Sound.bgm(cfg.boss ? 'boss' : 'battle');
+    Sound.bgm(this.bgmName());
     this.applyField();
-    await this.intro(cfg);
+    await (cfg.rush ? this.rushIntro(cfg) : this.intro(cfg));
     this.tutorial('start');
     await B.begin();
     this.afterAction();
+  },
+
+  bgmName() {
+    const c = this.cfg, G = B.G;
+    if (c && c.rush) return G && G.P[1].phase > 0 ? 'rush2' : 'rush';
+    return c && c.boss ? 'boss' : 'battle';
+  },
+  // ボスラッシュ用の表示（二つ名・覚醒ライン・必殺技カウント）
+  setupBoss(cfg) {
+    const b = cfg.rush ? cfg.enemy.boss : null;
+    const he = $('.hero-e', this.root);
+    this.stage.classList.toggle('rush', !!b);
+    this.stage.classList.remove('awakened');
+    he.classList.toggle('boss-hud', !!b);
+    he.style.setProperty('--bc', b ? b.color : '');
+    $('.boss-title', he).hidden = !b;
+    $('.boss-row', he).hidden = !b;
+    $('.hp-marks', he).innerHTML = b ? b.phases.map(ph => `<i style="left:${ph.at * 100}%"></i>`).join('') : '';
+    if (!b) return;
+    $('.boss-title', he).textContent = `No.${String(b.no).padStart(2, '0')} ${b.title}`;
+    const uc = $('.ult-chip', he);
+    uc.onclick = () => {
+      const P = B.G.P[1];
+      this.strip(`<div class="dt-head"><span class="dt-rar" style="--rc:#ff2244">必殺</span><span class="dt-name">☠ ${esc(b.ult.name)}</span></div><div class="dt-text">${esc(b.ult.text)}</div><div class="dt-kws"><span><b>⏳ ${P.ultCd <= 1 ? '次の相手のターンに発動！' : `あと${P.ultCd}ターン`}</b> 相手のターン開始時にカウントが減り、0で発動</span></div>`
+        + b.phases.map(ph => `<div class="dt-kws"><span><b>${P.phase > b.phases.indexOf(ph) ? '✅' : '🔥'} 覚醒（HP${Math.round(ph.at * 100)}%以下）「${esc(ph.name)}」</b> ${esc(ph.text)}</span></div>`).join(''));
+    };
+  },
+  syncBoss() {
+    const G = B.G, E = G.P[1], b = E.boss;
+    if (!b) return;
+    const he = $('.hero-e', this.root);
+    const uc = $('.ult-chip', he);
+    const soon = E.ultCd <= 1;
+    const html = `☠ <b>${esc(b.ult.name)}</b> <em>${soon ? '次のターン!!' : `あと${E.ultCd}`}</em>`;
+    if (uc.innerHTML !== html) uc.innerHTML = html;
+    uc.classList.toggle('soon', soon);
+    const pc = $('.phase-chip', he);
+    const pt = E.phase > 0 ? (b.phases.length > 1 ? `覚醒${E.phase}` : '覚醒') : '';
+    if (pc.textContent !== pt) pc.textContent = pt;
+    pc.hidden = !pt;
+    $$('.hp-marks i', he).forEach((m, i) => m.classList.toggle('passed', E.phase > i));
+  },
+
+  // ボスラッシュの登場演出：警報 → 闇から姿 → 二つ名 → 名前を叩きつける
+  async rushIntro(cfg) {
+    if (Time.headless) return;
+    const b = cfg.enemy.boss, t = BOSS_TIERS[b.tier - 1];
+    const ov = el('div', 'boss-intro');
+    ov.style.setProperty('--bc', b.color);
+    const band = 'WARNING ⚠ BOSS APPROACHING ⚠ '.repeat(6);
+    ov.innerHTML = `
+      <div class="bi-scan"></div>
+      <div class="bi-band top"><span>${band}</span></div>
+      <div class="bi-band bot"><span>${band}</span></div>
+      <div class="bi-warn">WARNING</div>
+      <div class="bi-center">
+        <div class="bi-no">BOSS RUSH No.${String(b.no).padStart(2, '0')} ・ ${t.name}「${t.sub}」</div>
+        <div class="bi-ava">${b.avatar}</div>
+        <div class="bi-title">― ${esc(b.title)} ―</div>
+        <div class="bi-name">${esc(b.name)}</div>
+        <div class="bi-hp">HP <b>${fmt(cfg.enemy.hp)}</b> <span>${'☠'.repeat(b.tier)}</span></div>
+        <div class="bi-quote">「${esc(b.quote)}」</div>
+      </div>
+      <div class="vs-skip">タップでスキップ</div>`;
+    this.root.appendChild(ov);
+    Sound.bgm(null);
+    Sound.play('siren');
+    let done;
+    const p = new Promise(r => (done = r));
+    const tm = [];
+    tm.push(setTimeout(() => { Sound.play('ult'); }, 900));
+    tm.push(setTimeout(() => { Sound.play('hitHeavy'); FX.shake(5); FX.flash(b.color, 0.35, 300); }, 1750));
+    tm.push(setTimeout(done, 3900));
+    ov.addEventListener('pointerdown', () => { tm.forEach(clearTimeout); done(); });
+    await p;
+    Sound.bgm(this.bgmName());
+    ov.classList.add('out');
+    setTimeout(() => ov.remove(), 350);
   },
 
   async intro(cfg) {
@@ -4489,6 +5386,7 @@ const BUI = {
     fb.classList.toggle('ready', P.fever >= 100 && !P.feverOn);
     fb.classList.toggle('on', P.feverOn);
     fb.disabled = !ready;
+    if (E.boss) this.syncBoss();
     const ef = $('.e-fever', this.root);
     if (ef) {
       ef.querySelector('i').style.width = (E.feverOn ? 100 : E.fever) + '%';
@@ -5107,12 +6005,19 @@ const View = {
       }
     } else {
       // 敵のカードは中央で見せてから飛ばす
-      if (RARITY[def.rarity].rank >= 3) BUI.enemySay(R.pick(['これでどうだ!', '切り札の出番だ!', '見せてやろう、本気を!']));
+      if (def.rarity === 'EX') BUI.enemySay(R.pick(['これが我が力…EXカードだ!', 'ボスだけの特権だ!', '受けてみよ!']));
+      else if (RARITY[def.rarity].rank >= 3) BUI.enemySay(R.pick(['これでどうだ!', '切り札の出番だ!', '見せてやろう、本気を!']));
       const eh = centerOf($('.hero-e', BUI.root));
       await animate(fly, [
         { transform: `translate(${eh.x}px, ${eh.y}px) translate(-50%,-50%) scale(.3) rotateY(180deg)`, opacity: 0 },
         { transform: `translate(${board.x}px, ${board.y}px) translate(-50%,-50%) scale(1.45) rotateY(0deg)`, opacity: 1 },
       ], { duration: 300, easing: 'cubic-bezier(.2,1.2,.4,1)' });
+      if (def.rarity === 'EX') {
+        Sound.play('reach'); FX.flash('#ff2244', 0.25, 260); FX.shake(2);
+        FX.rays(board.x, board.y, { color: '#ff2244', size: 320, life: 1 });
+        FX.popText(board.x, board.y - BUI.hw * 1.3, 'EX CARD!!', 'pop-ex', { size: 34, dx: 0, dur: 1100 });
+        await wait(300);
+      }
       await wait(def.type === 'unit' ? 450 : 600);
       await animate(fly, [
         { transform: `translate(${board.x}px, ${board.y}px) translate(-50%,-50%) scale(1.45)` },
@@ -5567,7 +6472,7 @@ const View = {
     } else if (pi === 0) {
       BUI.stage.classList.remove('fever-on');
       document.body.classList.remove('fever-on');
-      Sound.bgm(BUI.cfg && BUI.cfg.boss ? 'boss' : 'battle');
+      Sound.bgm(BUI.bgmName());
       BUI.applyField();
     }
   },
@@ -5600,7 +6505,110 @@ const View = {
   async passive(pi, pas) {
     const h = centerOf($('.hero-e', BUI.root));
     FX.popText(h.x, h.y + 40, '⚠ ' + pas.name, 'pop-warnlabel', { dx: 0, dur: 1100 });
+    if (BUI.cfg && BUI.cfg.rush) { BUI.log('⚠', `ボスの常時能力「${esc(pas.name)}」`, 'op'); Sound.play('dark'); animate($('.hero-e .hero-ava', BUI.root), [{ filter: 'brightness(1)' }, { filter: 'brightness(2.2) drop-shadow(0 0 12px #ff2244)' }, { filter: 'brightness(1)' }], { duration: 500 }); }
     return wait(250);
+  },
+
+  /* ---- ボスラッシュ ---- */
+  // 必殺技：画面を黒帯で切って、ボスの顔と技名をドーンと出す
+  async bossUlt(pi, u) {
+    const b = B.G.P[pi].boss;
+    BUI.log('☠', `ボスの必殺技「${esc(u.name)}」！ ${esc(u.text)}`, 'op');
+    BUI.tip('ult', '☠ <b>必殺技</b>：ボスは数ターンごとに強力な技を撃ってくる。右上の<b>☠カウント</b>を見て、来る前に備えよう！');
+    const c = el('div', 'ult-cut');
+    c.style.setProperty('--bc', b.color);
+    c.innerHTML = `<div class="uc-bar top"></div><div class="uc-bar bot"></div>
+      <div class="uc-ava">${b.avatar}</div>
+      <div class="uc-txt"><div class="uc-k">☠ ULTIMATE ☠</div><div class="uc-name">${esc(u.name)}</div><div class="uc-desc">${esc(u.text)}</div></div>`;
+    BUI.ov.appendChild(c);
+    Sound.play('ult');
+    vibrate([60, 40, 160]);
+    FX.flash('#000000', 0.5, 300);
+    await wait(700);
+    FX.shake(6);
+    FX.flash(b.color, 0.45, 350);
+    const h = centerOf($('.hero-e', BUI.root));
+    FX.rays(h.x, h.y, { color: '#ff2244', size: 520, life: 1.2 });
+    await wait(1100);
+    c.classList.add('out');
+    await wait(220);
+    c.remove();
+  },
+  // 覚醒：白→赤のフラッシュ、ひび割れ、BGMが切り替わる
+  async bossPhase(pi, phase, ph) {
+    const P = B.G.P[pi], b = P.boss;
+    BUI.log('🔥', `ボスが覚醒！「${esc(ph.name)}」 ${esc(ph.text)}`, 'op');
+    BUI.tip('awaken', '🔥 <b>覚醒</b>：ボスはHPが減ると覚醒して戦い方が変わる。HPバーの<b>白い線</b>が覚醒ライン');
+    BUI.deselect(true);
+    const c = el('div', 'awaken');
+    c.style.setProperty('--bc', b.color);
+    c.innerHTML = `<div class="aw-crack"></div><div class="aw-ava">${b.avatar}</div>
+      <div class="aw-main">覚醒!!</div><div class="aw-name">${b.phases.length > 1 ? `PHASE ${phase + 1} ・ ` : ''}${esc(ph.name)}</div>
+      <div class="aw-line">「${esc(ph.line)}」</div><div class="aw-desc">${esc(ph.text)}</div>`;
+    BUI.ov.appendChild(c);
+    Sound.bgm(null);
+    Sound.play('awaken');
+    vibrate([100, 60, 100, 60, 300]);
+    await wait(720);
+    FX.flash('#ffffff', 0.85, 250);
+    FX.shake(9);
+    const h = centerOf($('.hero-e', BUI.root));
+    FX.burst(h.x, h.y, { count: 90, colors: [b.color, '#ff2244', '#fff'], speed: 14, type: 'shard', size: 8 });
+    FX.ring(h.x, h.y, { color: '#ff2244', size: 30, grow: 22, width: 10 });
+    BUI.stage.classList.add('awakened');
+    BUI.syncBoss();
+    await wait(1700);
+    Sound.bgm(BUI.bgmName());
+    c.classList.add('out');
+    await wait(250);
+    c.remove();
+  },
+  async bounce(u) {
+    const e = BUI.unitEls.get(u.uid);
+    BUI.log('⌛', `${esc(u.def.name)}が手札に戻された`);
+    Sound.play('whoosh');
+    if (e) {
+      const to = centerOf(u.owner === 0 ? $('.hand', BUI.root) : $('.hero-e', BUI.root));
+      const a = e.getBoundingClientRect();
+      e.classList.add('dying');
+      await animate(e, [
+        { transform: 'translate(0,0) scale(1)', opacity: 1, filter: 'brightness(1)' },
+        { transform: `translate(${to.x - a.left - a.width / 2}px, ${to.y - a.top - a.height / 2}px) scale(.3) rotate(-30deg)`, opacity: 0, filter: 'brightness(2.5)' },
+      ], { duration: 380, easing: 'ease-in' });
+      e.remove();
+      BUI.unitEls.delete(u.uid);
+    }
+    const p = centerOf(BUI.slotEl(u.owner, u.lane));
+    FX.popText(p.x, p.y - 20, '手札へ!', 'pop-label');
+    BUI.sync();
+    if (u.owner === 0) BUI.syncHand();
+  },
+  async debuff(u, v) {
+    const e = BUI.unitEls.get(u.uid), p = BUI.posOf(u);
+    if (e) { updateUnitEl(e, u); animate(e, [{ filter: 'brightness(1)' }, { filter: 'grayscale(1) brightness(.6)' }, { filter: 'brightness(1)' }], { duration: 320 }); }
+    if (v) FX.popText(p.x, p.y, `ATK-${v}`, 'pop-dark');
+    Sound.play('dark');
+    return wait(120);
+  },
+  async discardCard(pi, c) {
+    const def = CARDS[c.id];
+    BUI.log('🗑️', `${pi === 0 ? 'あなた' : '相手'}の手札「${esc(def.name)}」が捨てられた`);
+    if (pi !== 0) { BUI.sync(); return wait(80); }
+    BUI.syncHand();
+    const board = centerOf($('.board', BUI.root));
+    const fly = cardEl(def, { cls: 'fly-card' });
+    fly.style.setProperty('--hw', BUI.hw + 'px');
+    fly.style.setProperty('--hh', Math.round(BUI.hw * 1.4) + 'px');
+    document.body.appendChild(fly);
+    Sound.play('burn');
+    await animate(fly, [
+      { transform: `translate(${board.x}px, ${innerHeight - 90}px) translate(-50%,-50%) scale(1)`, opacity: 1 },
+      { transform: `translate(${board.x}px, ${board.y}px) translate(-50%,-50%) scale(1.3) rotate(-6deg)`, opacity: 1, filter: 'brightness(1)', offset: 0.45 },
+      { transform: `translate(${board.x}px, ${board.y - 30}px) translate(-50%,-50%) scale(1.1) rotate(8deg)`, opacity: 0, filter: 'brightness(.2) sepia(1) saturate(4) hue-rotate(-30deg)' },
+    ], { duration: 650, easing: 'ease-in' });
+    FX.burst(board.x, board.y, { count: 26, colors: ['#ff7a2e', '#ffd166', '#222'], speed: 5, gravity: -0.15 });
+    FX.popText(board.x, board.y - 40, '捨てられた…', 'pop-dark');
+    fly.remove();
   },
   async energy(pi, n) {
     BUI.sync();
@@ -5777,8 +6785,15 @@ const View = {
       await waitReal(250);
       Sound.play('win');
       FX.confetti(180);
-      await FX.banner('K.O.!!', { cls: 'b-ko', dur: 1600 });
+      if (BUI.cfg && BUI.cfg.rush) {
+        const b = BUI.cfg.enemy.boss;
+        BUI.enemySay(b.lose);
+        FX.flash('#ff2244', 0.4, 400);
+        FX.burst(p.x, p.y, { count: 120, colors: [b.color, '#ff2244', '#ffd23f', '#fff'], speed: 18, type: 'shard', size: 10 });
+        await FX.banner('BOSS BREAK!!', { cls: 'b-ko b-break', sub: `No.${String(b.no).padStart(2, '0')} ${b.name} 撃破!!`, dur: 2000 });
+      } else await FX.banner('K.O.!!', { cls: 'b-ko', dur: 1600 });
     } else {
+      if (BUI.cfg && BUI.cfg.rush) BUI.enemySay(BUI.cfg.enemy.boss.win);
       Sound.play('lose');
       await FX.banner(res && res.surrender ? '降参…' : 'DEFEAT…', { cls: 'b-lose', dur: 1400 });
     }
@@ -5851,6 +6866,17 @@ function celebrate(html, sub, o = {}) {
   return FX.banner(html, { cls: o.cls || 'b-gold', sub, dur: 1300 });
 }
 
+function rushCTA() {
+  const open = Meta.rushUnlocked(), n = Meta.rushDefeated();
+  return `<button class="cta-rush ${open ? '' : 'locked'}" type="button" data-go="rush">
+    <span class="cr-band"><i>WARNING ⚠ BOSS RUSH ⚠ WARNING ⚠ BOSS RUSH ⚠ WARNING ⚠ BOSS RUSH ⚠</i></span>
+    <span class="cr-row"><span class="cr-skull">${open ? '☠' : '🔒'}</span><span class="cr-txt"><span class="cr-main">BOSS RUSH</span>
+    <span class="cr-sub">${open ? `20体の凶悪ボス ・ 撃破 <b>${n}</b>/20` : 'ストーリー1-4クリアで解放'}</span></span>
+    <span class="cr-faces">${BOSS_LIST.slice(-3).map(b => `<i>${b.avatar}</i>`).join('')}</span></span>
+  </button>`;
+}
+const dangerHTML = t => `<span class="danger">${'☠'.repeat(t)}<i>${'☠'.repeat(4 - t)}</i></span>`;
+
 const UI = {
   /* ---------- タイトル ---------- */
   title() {
@@ -5916,6 +6942,7 @@ const UI = {
           <span class="cta-sub">${ns ? `NEXT ${ns.id}「${esc(ns.name)}」${ns.boss ? ' <em>BOSS</em>' : ''}` : ''}</span>
           <span class="cta-stars">★ ${Meta.totalStars()} / ${STAGE_ORDER.length * 3}</span>
         </button>
+        ${rushCTA()}
         <div class="menu-grid">
           <button type="button" data-go="rank" class="mg-rank"><span class="mg-ic">🏆</span><span class="mg-t">ランク戦</span><small style="color:${rk.color}">${rk.icon} ${rk.name}${s.rank.streak >= 2 ? ` ・ ${s.rank.streak}連勝中🔥` : ''}</small></button>
           <button type="button" data-go="gacha" class="mg-gacha"><span class="mg-ic">🎴</span><span class="mg-t">ガチャ</span><small>SSR確定まで${Meta.PITY_MAX - s.pity}</small>${free ? `<i class="badge">${free}</i>` : ''}</button>
@@ -5936,8 +6963,9 @@ const UI = {
       </div>`;
     $('.pk-card', r).appendChild(cardEl(pick));
     $$('[data-go]', r).forEach(b => b.addEventListener('click', () => {
-      Sound.play('select');
       const g = b.dataset.go;
+      if (g === 'rush' && !Meta.rushUnlocked()) { Sound.play('error'); FX.toast('ストーリー1-4「ビッグプリン」を倒すと解放！'); return; }
+      Sound.play(g === 'rush' ? 'enemyTurn' : 'select');
       if (g === 'rank') Game.startRank();
       else if (g === 'howto') UI.howto();
       else Screens.show(g);
@@ -5961,6 +6989,7 @@ const UI = {
         <section><h3>⚔ アタック</h3><p>「アタック!」を押すと、自分のユニットが<b>左から順に正面の敵を攻撃</b>。正面が空いていたら<b>敵ヒーローに直撃</b>！</p></section>
         <section><h3>★ 合体</h3><p>場にいるユニットに<b>同じカードを重ねる</b>と合体して★2、さらに重ねて★3。★3は<b>覚醒</b>してシールドを持つ。登場時効果ももう一度発動！</p></section>
         <section><h3>🔥 FEVER</h3><p>攻撃・撃破・合体でゲージが溜まる。MAXでボタンを押すと<b>PPが3回復</b>（上限を超えてもOK）。いつ使うかが腕の見せどころ！ <b>相手も</b>ゲージが溜まるとFEVERを使ってくる（右上のゲージをチェック）。</p></section>
+        <section><h3>☠ ボスラッシュ</h3><p>ストーリー1-4クリアで解放される、20体の凶悪ボスとの決戦。ボスは専用の<b>EXカード</b>、毎ターンの<b>常時能力</b>、数ターンごとの<b>必殺技</b>（右上の☠カウントで予告）を使い、HPが減ると<b>覚醒</b>して戦い方が変わる。あなたのHPは${RUSH_PLAYER_HP}。負けても削ったぶんだけコインがもらえる。</p></section>
         <section><h3>💥 クリティカル</h3><p>攻撃は<b>10%</b>でクリティカル（ダメージ2倍）。ラッキー持ちやカジノで確率アップ。</p></section>
         <section><h3>🗺 フィールド</h3><p>フィールドカードを出すと、場全体のルールが変わる。新しいフィールドを出すと上書き。</p></section>
         <section><h3>🎰 リーチ</h3><p>アタックすれば倒せそうな時、相手ヒーローに「リーチ!」が光る。</p></section>
@@ -6041,6 +7070,96 @@ const UI = {
       const a = ev.target.closest('[data-a]');
       if (!a) return;
       if (a.dataset.a === 'go') { Modal.close(); Game.startStage(id); }
+      if (a.dataset.a === 'deck') { Modal.close(); Screens.show('deck'); }
+    });
+  },
+
+  /* ---------- ボスラッシュ ---------- */
+  rush() {
+    const r = $('#scr-rush');
+    const n = Meta.rushDefeated(), rs = Meta.save.rush;
+    r.innerHTML = `
+      ${topbar('BOSS RUSH')}
+      <div class="scroll rush-scroll">
+        <div class="rush-hero">
+          <div class="rh-title" data-text="BOSS RUSH">BOSS RUSH</div>
+          <div class="rh-sub">ストーリーとは別次元の、20体の凶悪ボス。<br>専用の<b class="ex">EXカード</b>・<b>必殺技</b>・<b>覚醒</b>を使ってくる。勝てたら奇跡。</div>
+          <div class="rh-prog"><span>撃破</span><div class="rh-bar"><i style="width:${n / BOSS_LIST.length * 100}%"></i></div><b>${n}<small>/${BOSS_LIST.length}</small></b></div>
+          <div class="rh-note">⚠ ボスラッシュではあなたのHPが<b>${RUSH_PLAYER_HP}</b>になる ・ 負けても削ったぶんコインがもらえる</div>
+        </div>
+        ${BOSS_TIERS.map(t => {
+          const open = Meta.rushTierOpen(t.tier);
+          const bosses = BOSS_LIST.filter(b => b.tier === t.tier);
+          const cleared = bosses.filter(b => Meta.rushWins(b.id)).length;
+          return `<section class="rush-tier ${open ? '' : 'locked'}" style="--tc:${t.color}">
+            <h3><span class="rt-name">${t.name}</span><span class="rt-sub">${t.sub}</span>${dangerHTML(t.tier)}<span class="rt-cnt">${cleared}/5</span></h3>
+            ${open ? '' : `<div class="rt-lock">🔒 ${BOSS_TIERS[t.tier - 2].name}のボスを1体倒すと解放</div>`}
+            <div class="rush-grid">${bosses.map(b => {
+              const w = Meta.rushWins(b.id), best = rs.best[b.id] || 0, tries = rs.tries[b.id] || 0;
+              const st = w ? `<span class="rb-st win">撃破 ×${w}</span>` : tries ? `<span class="rb-st">ベスト ${best}%</span>` : '<span class="rb-st new">未挑戦</span>';
+              return `<button type="button" class="rboss ${w ? 'beaten' : ''} ${b.no % 5 === 0 ? 'gate' : ''} ${b.no === 20 ? 'final' : ''}" data-b="${b.id}" style="--bc:${b.color}">
+                ${b.no % 5 === 0 ? `<span class="rb-gate">${b.no === 20 ? '👑 LAST BOSS' : '階層ボス'}</span>` : ''}
+                <span class="rb-no">No.${String(b.no).padStart(2, '0')}</span>
+                <span class="rb-ava">${open ? b.avatar : '？'}</span>
+                <span class="rb-title">${open ? esc(b.title) : '？？？'}</span>
+                <span class="rb-name">${open ? esc(b.name) : '？？？'}</span>
+                <span class="rb-hp">HP ${open ? fmt(rushConfig(b.id).hp) : '???'}</span>
+                ${open ? st : ''}
+                ${!w && tries ? `<span class="rb-best"><i style="width:${best}%"></i></span>` : ''}
+                ${w ? '<span class="rb-stamp">撃破</span>' : ''}
+              </button>`;
+            }).join('')}</div>
+          </section>`;
+        }).join('')}
+        <div class="rush-all ${rs.allClear ? 'done' : ''}">
+          <div class="ra-t">👑 全20体撃破ボーナス</div>
+          <div class="ra-rw">${rewardChips(Meta.RUSH_ALL_REWARD)}</div>
+          <div class="ra-s">${rs.allClear ? '達成済み！ あなたこそ真のドーパミン神' : `あと ${BOSS_LIST.length - n} 体`}</div>
+        </div>
+      </div>`;
+    bindBack(r);
+    $$('.rboss', r).forEach(b => b.addEventListener('click', () => {
+      const boss = BOSSES[b.dataset.b];
+      if (!Meta.rushTierOpen(boss.tier)) { Sound.play('error'); FX.toast(`${BOSS_TIERS[boss.tier - 2].name}のボスを1体倒すと解放！`); return; }
+      Sound.play('select'); UI.bossDetail(boss.id);
+    }));
+    Sound.bgm('rush');
+  },
+
+  bossDetail(id) {
+    const b = BOSSES[id], cfg = rushConfig(id), rs = Meta.save.rush;
+    const w = Meta.rushWins(id), best = rs.best[id] || 0;
+    const first = Meta.rushFirstReward(b);
+    const box = Modal.open(`
+      <div class="bd-head" style="--bc:${b.color}">
+        <div class="bd-no">BOSS No.${String(b.no).padStart(2, '0')} ・ ${BOSS_TIERS[b.tier - 1].name}</div>
+        <div class="bd-ava">${b.avatar}</div>
+        <div class="bd-title">${esc(b.title)}</div>
+        <div class="bd-name">${esc(b.name)}</div>
+        <div class="bd-quote">「${esc(b.quote)}」</div>
+        <div class="bd-stats"><span>HP <b>${fmt(cfg.hp)}</b></span><span>危険度 ${dangerHTML(b.tier)}</span><span>使う属性 ${b.tribes.map(t => TRIBES[t].icon).join('')}</span></div>
+      </div>
+      <div class="bd-abil">
+        <div class="ba pas"><span class="ba-k">常時</span><b>${esc(b.passive.name)}</b><p>${esc(b.passive.text)}</p></div>
+        <div class="ba ult"><span class="ba-k">必殺 ${b.ult.first && b.ult.first !== b.ult.every ? `${b.ult.first}ターン目→以後${b.ult.every}ターンごと` : `${b.ult.every}ターンごと`}</span><b>${esc(b.ult.name)}</b><p>${esc(b.ult.text)}</p></div>
+        ${b.phases.map(ph => `<div class="ba awk"><span class="ba-k">覚醒 HP${Math.round(ph.at * 100)}%以下</span><b>${esc(ph.name)}</b><p>${esc(ph.text)}</p></div>`).join('')}
+      </div>
+      <div class="bd-cards-h">専用 <b class="ex">EXカード</b>（ボスだけが使う）</div>
+      <div class="bd-cards"></div>
+      <div class="bd-rec">${w ? `<span class="win">撃破 ${w}回 ・ 最速 ${rs.fastest[id]}R</span>` : `<span>挑戦 ${rs.tries[id] || 0}回 ・ ベスト ${best}%</span>`}</div>
+      <div class="sd-rw">${w ? `勝利報酬：🪙${250 + b.no * 25}〜` : `<em>初撃破 ${rewardChips(first)}</em>`}</div>
+      <div class="sd-btns"><button class="btn ghost" type="button" data-a="deck">デッキ</button><button class="btn big hot rush-go" type="button" data-a="go">☠ 挑む!</button></div>`, { cls: 'boss-modal' });
+    const cw = $('.bd-cards', box);
+    b.cards.forEach(cid => {
+      const c = cardEl(CARDS[cid], { text: true, cls: 'bd-card' });
+      onLongPress(c, () => Preview.show(CARDS[cid]));
+      c.addEventListener('click', () => Preview.show(CARDS[cid]));
+      cw.appendChild(c);
+    });
+    box.addEventListener('click', ev => {
+      const a = ev.target.closest('[data-a]');
+      if (!a) return;
+      if (a.dataset.a === 'go') { Modal.close(); Game.startRush(id); }
       if (a.dataset.a === 'deck') { Modal.close(); Screens.show('deck'); }
     });
   },
@@ -6433,8 +7552,13 @@ const UI = {
     const idx = isStage ? STAGE_ORDER.indexOf(cfg.stageId) : -1;
     const nextId = isStage && win ? STAGE_ORDER[idx + 1] : null;
     const gap = res.enemyHp;
+    const isRush = cfg.mode === 'rush', boss = isRush ? BOSSES[cfg.bossId] : null;
     let head;
-    if (win) head = `<div class="rs-title win">VICTORY!!</div>`;
+    if (isRush) head = `<div class="rs-title ${win ? 'win' : 'lose'} rush">${win ? 'BOSS DEFEATED!!' : 'DEFEAT…'}</div>
+      <div class="rs-boss" style="--bc:${boss.color}"><span class="rsb-ava">${boss.avatar}</span><div><div class="rsb-name">${esc(boss.name)}</div><div class="rsb-line">「${esc(win ? boss.lose : boss.win)}」</div></div></div>
+      <div class="rs-dmg"><span>ボスに与えたダメージ</span><div class="rs-dbar"><i style="width:${out.pct}%"></i>${out.bestBefore && out.bestBefore < 100 ? `<em style="left:${out.bestBefore}%"></em>` : ''}</div><b>${out.pct}%</b>${out.newBest && !win ? '<span class="rs-nb">自己ベスト更新!</span>' : ''}</div>
+      ${out.allClear ? `<div class="rs-allclear">👑 全20体撃破!! ${rewardChips(Meta.RUSH_ALL_REWARD)}</div>` : ''}`;
+    else if (win) head = `<div class="rs-title win">VICTORY!!</div>`;
     else head = `<div class="rs-title lose">DEFEAT…</div>${!res.surrender && gap > 0 ? `<div class="rs-near">惜しい！ 相手のHPは残り <b>${gap}</b>！${gap <= 60 ? ' あと1発だった!!' : ''}</div>` : ''}`;
     const box = Modal.open(`
       ${head}
@@ -6456,7 +7580,8 @@ const UI = {
       ${out.chance ? `<div class="rs-chance"><button class="btn big chance-btn" type="button" data-chance>🎰 ボーナスチャンス!</button><div class="wheel" hidden>${Meta.BONUS_WHEEL.map((w, i) => `<span data-w="${i}">${rewardChips(w)}</span>`).join('')}</div></div>` : ''}
       <div class="rs-btns">
         ${nextId ? `<button class="btn big hot" type="button" data-a="next">次のステージ ▶</button>` : ''}
-        ${!win ? `<button class="btn big hot" type="button" data-a="retry">🔁 リベンジ!</button>` : ''}
+        ${!win ? `<button class="btn big hot" type="button" data-a="retry">🔁 ${isRush ? '再挑戦!' : 'リベンジ!'}</button>` : ''}
+        ${isRush ? `<button class="btn big ${win ? 'hot' : ''}" type="button" data-a="rushlist">☠ ボスラッシュへ</button>` : ''}
         ${cfg.mode === 'rank' ? `<button class="btn big ${win ? 'hot' : ''}" type="button" data-a="rank">🏆 もう1戦!</button>` : ''}
         ${win && isStage ? `<button class="btn ghost" type="button" data-a="retry">もう一回</button>` : ''}
         <button class="btn ghost" type="button" data-a="home">ホーム</button>
@@ -6486,7 +7611,8 @@ const UI = {
       Sound.play('select');
       Modal.closeAll();
       if (a.dataset.a === 'next') Game.startStage(nextId);
-      else if (a.dataset.a === 'retry') Game.startStage(cfg.stageId);
+      else if (a.dataset.a === 'retry') { if (isRush) Game.startRush(cfg.bossId); else Game.startStage(cfg.stageId); }
+      else if (a.dataset.a === 'rushlist') Screens.show('rush');
       else if (a.dataset.a === 'rank') Game.startRank();
       else Screens.show(isStage ? 'stages' : 'home');
     });
@@ -6798,6 +7924,15 @@ const Game = {
     });
   },
 
+  startRush(id) {
+    if (!this.checkDeck()) return;
+    const b = BOSSES[id];
+    BUI.start({
+      mode: 'rush', bossId: id, boss: true, rush: true, quote: b.quote,
+      player: Object.assign(this.playerCfg(), { hp: RUSH_PLAYER_HP }), enemy: rushConfig(id),
+    });
+  },
+
   startRank() {
     if (!this.checkDeck()) return;
     const rival = rivalConfig(Meta.save.rank.rp);
@@ -6809,6 +7944,8 @@ const Game = {
     if (cfg.mode === 'stage') {
       out = Meta.stageResult(cfg.stageId, res);
       if (cfg.tutorial && res.win) Meta.save.flags.tutorialDone = true;
+    } else if (cfg.mode === 'rush') {
+      out = Meta.rushResult(cfg.bossId, res);
     } else {
       out = Meta.rankResult(res, cfg.enemy);
     }

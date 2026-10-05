@@ -181,6 +181,26 @@ const Sound = (() => {
       noise({ f: 6000, dur: 1.0, vol: 0.12, q: 0.5 });
     },
     promote() { [79, 83, 86, 91, 95, 98].forEach((n, i) => tone({ note: n, type: 'square', dur: 0.08, vol: 0.08, when: i * 0.06 })); noise({ f: 1000, fEnd: 8000, dur: 0.4, vol: 0.18, q: 1 }); },
+    // ボスラッシュ用：警報・必殺技・覚醒
+    siren() {
+      for (let i = 0; i < 3; i++) {
+        tone({ freq: 620, type: 'sawtooth', dur: 0.32, vol: 0.09, slide: 1.45, when: i * 0.62, lp: 2600 });
+        tone({ freq: 900, type: 'sawtooth', dur: 0.3, vol: 0.09, slide: 0.69, when: i * 0.62 + 0.31, lp: 2600 });
+      }
+    },
+    ult() {
+      noise({ f: 300, fEnd: 5000, dur: 0.7, vol: 0.25, q: 0.7 });
+      tone({ freq: 60, type: 'sawtooth', dur: 0.9, vol: 0.35, slide: 2.2, lp: 900 });
+      tone({ freq: 55, type: 'sine', dur: 0.7, vol: 0.8, slide: 0.4, when: 0.7 });
+      noise({ f: 1500, fEnd: 100, dur: 0.8, vol: 0.5, filter: 'lowpass', when: 0.7 });
+      [50, 53, 57].forEach(n => tone({ note: n, type: 'square', dur: 0.9, vol: 0.06, when: 0.7, lp: 1600 }));
+    },
+    awaken() {
+      for (let i = 0; i < 10; i++) tone({ note: 48 + i * 2, type: 'square', dur: 0.08, vol: 0.06, when: i * 0.07, lp: 2400 });
+      tone({ freq: 40, type: 'sine', dur: 1.2, vol: 0.9, slide: 0.5, when: 0.72 });
+      noise({ f: 6000, fEnd: 200, dur: 1.2, vol: 0.45, q: 0.5, when: 0.72 });
+      [38, 45, 50, 53].forEach(n => tone({ note: n, type: 'sawtooth', dur: 1.3, vol: 0.05, when: 0.72, lp: 1200 }));
+    },
     claim() { SFX.coin(); [84, 88, 91, 96].forEach((n, i) => tone({ note: n, type: 'square', dur: 0.06, vol: 0.06, when: 0.08 + i * 0.04 })); },
   };
 
@@ -217,6 +237,21 @@ const Sound = (() => {
       kick: 'x..xx...x..xx...', snare: '....x.......x.xx', hat: 'xxxxxxxxxxxxxxxx', drumVol: 1,
       lead: [74, 74, 0, 77, 0, 81, 0, 77, 74, 0, 70, 0, 74, 77, 0, 74, 70, 70, 0, 74, 0, 79, 0, 74, 73, 0, 76, 0, 79, 0, 81, 0],
       leadType: 'square', leadVol: 0.035,
+    },
+    // ボスラッシュ：低いD#マイナーの重いリフ。覚醒後(rush2)はテンポと密度が上がる
+    rush: {
+      bpm: 156, chords: [[39, 'm'], [39, 'm'], [35, 'M'], [37, 'M']],
+      bass: '1.1.21.11.1.21.3', arp: '0.0.1.0.2.0.1.3.', arpType: 'sawtooth', arpOct: 24, arpVol: 0.02,
+      kick: 'x.x...x.x.x...x.', snare: '....x.......x...', hat: 'x.x.x.x.x.x.x.xx', drumVol: 1,
+      lead: [75, 0, 75, 74, 0, 70, 0, 0, 75, 0, 78, 0, 77, 75, 74, 0, 71, 0, 71, 70, 0, 66, 0, 0, 73, 0, 75, 0, 77, 0, 78, 0],
+      leadType: 'sawtooth', leadVol: 0.028,
+    },
+    rush2: {
+      bpm: 178, chords: [[39, 'm'], [42, 'M'], [35, 'M'], [37, 'M']],
+      bass: '1111211121112123', arp: '0123012301230123', arpType: 'sawtooth', arpOct: 24, arpVol: 0.022,
+      kick: 'x.xxx.x.x.xxx.x.', snare: '....x..x....x.xx', hat: 'xxxxxxxxxxxxxxxx', drumVol: 1.1,
+      lead: [87, 0, 86, 0, 82, 0, 87, 90, 0, 89, 87, 86, 0, 82, 0, 0, 83, 0, 82, 0, 78, 0, 83, 87, 0, 85, 83, 82, 85, 0, 87, 0],
+      leadType: 'square', leadVol: 0.03,
     },
     fever: {
       bpm: 172, chords: [[47, 'm'], [43, 'M'], [50, 'M'], [45, 'M']],

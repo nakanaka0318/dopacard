@@ -62,6 +62,17 @@ function celebrate(html, sub, o = {}) {
   return FX.banner(html, { cls: o.cls || 'b-gold', sub, dur: 1300 });
 }
 
+function rushCTA() {
+  const open = Meta.rushUnlocked(), n = Meta.rushDefeated();
+  return `<button class="cta-rush ${open ? '' : 'locked'}" type="button" data-go="rush">
+    <span class="cr-band"><i>WARNING ⚠ BOSS RUSH ⚠ WARNING ⚠ BOSS RUSH ⚠ WARNING ⚠ BOSS RUSH ⚠</i></span>
+    <span class="cr-row"><span class="cr-skull">${open ? '☠' : '🔒'}</span><span class="cr-txt"><span class="cr-main">BOSS RUSH</span>
+    <span class="cr-sub">${open ? `20体の凶悪ボス ・ 撃破 <b>${n}</b>/20` : 'ストーリー1-4クリアで解放'}</span></span>
+    <span class="cr-faces">${BOSS_LIST.slice(-3).map(b => `<i>${b.avatar}</i>`).join('')}</span></span>
+  </button>`;
+}
+const dangerHTML = t => `<span class="danger">${'☠'.repeat(t)}<i>${'☠'.repeat(4 - t)}</i></span>`;
+
 const UI = {
   /* ---------- タイトル ---------- */
   title() {
@@ -127,6 +138,7 @@ const UI = {
           <span class="cta-sub">${ns ? `NEXT ${ns.id}「${esc(ns.name)}」${ns.boss ? ' <em>BOSS</em>' : ''}` : ''}</span>
           <span class="cta-stars">★ ${Meta.totalStars()} / ${STAGE_ORDER.length * 3}</span>
         </button>
+        ${rushCTA()}
         <div class="menu-grid">
           <button type="button" data-go="rank" class="mg-rank"><span class="mg-ic">🏆</span><span class="mg-t">ランク戦</span><small style="color:${rk.color}">${rk.icon} ${rk.name}${s.rank.streak >= 2 ? ` ・ ${s.rank.streak}連勝中🔥` : ''}</small></button>
           <button type="button" data-go="gacha" class="mg-gacha"><span class="mg-ic">🎴</span><span class="mg-t">ガチャ</span><small>SSR確定まで${Meta.PITY_MAX - s.pity}</small>${free ? `<i class="badge">${free}</i>` : ''}</button>
@@ -147,8 +159,9 @@ const UI = {
       </div>`;
     $('.pk-card', r).appendChild(cardEl(pick));
     $$('[data-go]', r).forEach(b => b.addEventListener('click', () => {
-      Sound.play('select');
       const g = b.dataset.go;
+      if (g === 'rush' && !Meta.rushUnlocked()) { Sound.play('error'); FX.toast('ストーリー1-4「ビッグプリン」を倒すと解放！'); return; }
+      Sound.play(g === 'rush' ? 'enemyTurn' : 'select');
       if (g === 'rank') Game.startRank();
       else if (g === 'howto') UI.howto();
       else Screens.show(g);
@@ -172,6 +185,7 @@ const UI = {
         <section><h3>⚔ アタック</h3><p>「アタック!」を押すと、自分のユニットが<b>左から順に正面の敵を攻撃</b>。正面が空いていたら<b>敵ヒーローに直撃</b>！</p></section>
         <section><h3>★ 合体</h3><p>場にいるユニットに<b>同じカードを重ねる</b>と合体して★2、さらに重ねて★3。★3は<b>覚醒</b>してシールドを持つ。登場時効果ももう一度発動！</p></section>
         <section><h3>🔥 FEVER</h3><p>攻撃・撃破・合体でゲージが溜まる。MAXでボタンを押すと<b>PPが3回復</b>（上限を超えてもOK）。いつ使うかが腕の見せどころ！ <b>相手も</b>ゲージが溜まるとFEVERを使ってくる（右上のゲージをチェック）。</p></section>
+        <section><h3>☠ ボスラッシュ</h3><p>ストーリー1-4クリアで解放される、20体の凶悪ボスとの決戦。ボスは専用の<b>EXカード</b>、毎ターンの<b>常時能力</b>、数ターンごとの<b>必殺技</b>（右上の☠カウントで予告）を使い、HPが減ると<b>覚醒</b>して戦い方が変わる。あなたのHPは${RUSH_PLAYER_HP}。負けても削ったぶんだけコインがもらえる。</p></section>
         <section><h3>💥 クリティカル</h3><p>攻撃は<b>10%</b>でクリティカル（ダメージ2倍）。ラッキー持ちやカジノで確率アップ。</p></section>
         <section><h3>🗺 フィールド</h3><p>フィールドカードを出すと、場全体のルールが変わる。新しいフィールドを出すと上書き。</p></section>
         <section><h3>🎰 リーチ</h3><p>アタックすれば倒せそうな時、相手ヒーローに「リーチ!」が光る。</p></section>
@@ -252,6 +266,96 @@ const UI = {
       const a = ev.target.closest('[data-a]');
       if (!a) return;
       if (a.dataset.a === 'go') { Modal.close(); Game.startStage(id); }
+      if (a.dataset.a === 'deck') { Modal.close(); Screens.show('deck'); }
+    });
+  },
+
+  /* ---------- ボスラッシュ ---------- */
+  rush() {
+    const r = $('#scr-rush');
+    const n = Meta.rushDefeated(), rs = Meta.save.rush;
+    r.innerHTML = `
+      ${topbar('BOSS RUSH')}
+      <div class="scroll rush-scroll">
+        <div class="rush-hero">
+          <div class="rh-title" data-text="BOSS RUSH">BOSS RUSH</div>
+          <div class="rh-sub">ストーリーとは別次元の、20体の凶悪ボス。<br>専用の<b class="ex">EXカード</b>・<b>必殺技</b>・<b>覚醒</b>を使ってくる。勝てたら奇跡。</div>
+          <div class="rh-prog"><span>撃破</span><div class="rh-bar"><i style="width:${n / BOSS_LIST.length * 100}%"></i></div><b>${n}<small>/${BOSS_LIST.length}</small></b></div>
+          <div class="rh-note">⚠ ボスラッシュではあなたのHPが<b>${RUSH_PLAYER_HP}</b>になる ・ 負けても削ったぶんコインがもらえる</div>
+        </div>
+        ${BOSS_TIERS.map(t => {
+          const open = Meta.rushTierOpen(t.tier);
+          const bosses = BOSS_LIST.filter(b => b.tier === t.tier);
+          const cleared = bosses.filter(b => Meta.rushWins(b.id)).length;
+          return `<section class="rush-tier ${open ? '' : 'locked'}" style="--tc:${t.color}">
+            <h3><span class="rt-name">${t.name}</span><span class="rt-sub">${t.sub}</span>${dangerHTML(t.tier)}<span class="rt-cnt">${cleared}/5</span></h3>
+            ${open ? '' : `<div class="rt-lock">🔒 ${BOSS_TIERS[t.tier - 2].name}のボスを1体倒すと解放</div>`}
+            <div class="rush-grid">${bosses.map(b => {
+              const w = Meta.rushWins(b.id), best = rs.best[b.id] || 0, tries = rs.tries[b.id] || 0;
+              const st = w ? `<span class="rb-st win">撃破 ×${w}</span>` : tries ? `<span class="rb-st">ベスト ${best}%</span>` : '<span class="rb-st new">未挑戦</span>';
+              return `<button type="button" class="rboss ${w ? 'beaten' : ''} ${b.no % 5 === 0 ? 'gate' : ''} ${b.no === 20 ? 'final' : ''}" data-b="${b.id}" style="--bc:${b.color}">
+                ${b.no % 5 === 0 ? `<span class="rb-gate">${b.no === 20 ? '👑 LAST BOSS' : '階層ボス'}</span>` : ''}
+                <span class="rb-no">No.${String(b.no).padStart(2, '0')}</span>
+                <span class="rb-ava">${open ? b.avatar : '？'}</span>
+                <span class="rb-title">${open ? esc(b.title) : '？？？'}</span>
+                <span class="rb-name">${open ? esc(b.name) : '？？？'}</span>
+                <span class="rb-hp">HP ${open ? fmt(rushConfig(b.id).hp) : '???'}</span>
+                ${open ? st : ''}
+                ${!w && tries ? `<span class="rb-best"><i style="width:${best}%"></i></span>` : ''}
+                ${w ? '<span class="rb-stamp">撃破</span>' : ''}
+              </button>`;
+            }).join('')}</div>
+          </section>`;
+        }).join('')}
+        <div class="rush-all ${rs.allClear ? 'done' : ''}">
+          <div class="ra-t">👑 全20体撃破ボーナス</div>
+          <div class="ra-rw">${rewardChips(Meta.RUSH_ALL_REWARD)}</div>
+          <div class="ra-s">${rs.allClear ? '達成済み！ あなたこそ真のドーパミン神' : `あと ${BOSS_LIST.length - n} 体`}</div>
+        </div>
+      </div>`;
+    bindBack(r);
+    $$('.rboss', r).forEach(b => b.addEventListener('click', () => {
+      const boss = BOSSES[b.dataset.b];
+      if (!Meta.rushTierOpen(boss.tier)) { Sound.play('error'); FX.toast(`${BOSS_TIERS[boss.tier - 2].name}のボスを1体倒すと解放！`); return; }
+      Sound.play('select'); UI.bossDetail(boss.id);
+    }));
+    Sound.bgm('rush');
+  },
+
+  bossDetail(id) {
+    const b = BOSSES[id], cfg = rushConfig(id), rs = Meta.save.rush;
+    const w = Meta.rushWins(id), best = rs.best[id] || 0;
+    const first = Meta.rushFirstReward(b);
+    const box = Modal.open(`
+      <div class="bd-head" style="--bc:${b.color}">
+        <div class="bd-no">BOSS No.${String(b.no).padStart(2, '0')} ・ ${BOSS_TIERS[b.tier - 1].name}</div>
+        <div class="bd-ava">${b.avatar}</div>
+        <div class="bd-title">${esc(b.title)}</div>
+        <div class="bd-name">${esc(b.name)}</div>
+        <div class="bd-quote">「${esc(b.quote)}」</div>
+        <div class="bd-stats"><span>HP <b>${fmt(cfg.hp)}</b></span><span>危険度 ${dangerHTML(b.tier)}</span><span>使う属性 ${b.tribes.map(t => TRIBES[t].icon).join('')}</span></div>
+      </div>
+      <div class="bd-abil">
+        <div class="ba pas"><span class="ba-k">常時</span><b>${esc(b.passive.name)}</b><p>${esc(b.passive.text)}</p></div>
+        <div class="ba ult"><span class="ba-k">必殺 ${b.ult.first && b.ult.first !== b.ult.every ? `${b.ult.first}ターン目→以後${b.ult.every}ターンごと` : `${b.ult.every}ターンごと`}</span><b>${esc(b.ult.name)}</b><p>${esc(b.ult.text)}</p></div>
+        ${b.phases.map(ph => `<div class="ba awk"><span class="ba-k">覚醒 HP${Math.round(ph.at * 100)}%以下</span><b>${esc(ph.name)}</b><p>${esc(ph.text)}</p></div>`).join('')}
+      </div>
+      <div class="bd-cards-h">専用 <b class="ex">EXカード</b>（ボスだけが使う）</div>
+      <div class="bd-cards"></div>
+      <div class="bd-rec">${w ? `<span class="win">撃破 ${w}回 ・ 最速 ${rs.fastest[id]}R</span>` : `<span>挑戦 ${rs.tries[id] || 0}回 ・ ベスト ${best}%</span>`}</div>
+      <div class="sd-rw">${w ? `勝利報酬：🪙${250 + b.no * 25}〜` : `<em>初撃破 ${rewardChips(first)}</em>`}</div>
+      <div class="sd-btns"><button class="btn ghost" type="button" data-a="deck">デッキ</button><button class="btn big hot rush-go" type="button" data-a="go">☠ 挑む!</button></div>`, { cls: 'boss-modal' });
+    const cw = $('.bd-cards', box);
+    b.cards.forEach(cid => {
+      const c = cardEl(CARDS[cid], { text: true, cls: 'bd-card' });
+      onLongPress(c, () => Preview.show(CARDS[cid]));
+      c.addEventListener('click', () => Preview.show(CARDS[cid]));
+      cw.appendChild(c);
+    });
+    box.addEventListener('click', ev => {
+      const a = ev.target.closest('[data-a]');
+      if (!a) return;
+      if (a.dataset.a === 'go') { Modal.close(); Game.startRush(id); }
       if (a.dataset.a === 'deck') { Modal.close(); Screens.show('deck'); }
     });
   },
@@ -644,8 +748,13 @@ const UI = {
     const idx = isStage ? STAGE_ORDER.indexOf(cfg.stageId) : -1;
     const nextId = isStage && win ? STAGE_ORDER[idx + 1] : null;
     const gap = res.enemyHp;
+    const isRush = cfg.mode === 'rush', boss = isRush ? BOSSES[cfg.bossId] : null;
     let head;
-    if (win) head = `<div class="rs-title win">VICTORY!!</div>`;
+    if (isRush) head = `<div class="rs-title ${win ? 'win' : 'lose'} rush">${win ? 'BOSS DEFEATED!!' : 'DEFEAT…'}</div>
+      <div class="rs-boss" style="--bc:${boss.color}"><span class="rsb-ava">${boss.avatar}</span><div><div class="rsb-name">${esc(boss.name)}</div><div class="rsb-line">「${esc(win ? boss.lose : boss.win)}」</div></div></div>
+      <div class="rs-dmg"><span>ボスに与えたダメージ</span><div class="rs-dbar"><i style="width:${out.pct}%"></i>${out.bestBefore && out.bestBefore < 100 ? `<em style="left:${out.bestBefore}%"></em>` : ''}</div><b>${out.pct}%</b>${out.newBest && !win ? '<span class="rs-nb">自己ベスト更新!</span>' : ''}</div>
+      ${out.allClear ? `<div class="rs-allclear">👑 全20体撃破!! ${rewardChips(Meta.RUSH_ALL_REWARD)}</div>` : ''}`;
+    else if (win) head = `<div class="rs-title win">VICTORY!!</div>`;
     else head = `<div class="rs-title lose">DEFEAT…</div>${!res.surrender && gap > 0 ? `<div class="rs-near">惜しい！ 相手のHPは残り <b>${gap}</b>！${gap <= 60 ? ' あと1発だった!!' : ''}</div>` : ''}`;
     const box = Modal.open(`
       ${head}
@@ -667,7 +776,8 @@ const UI = {
       ${out.chance ? `<div class="rs-chance"><button class="btn big chance-btn" type="button" data-chance>🎰 ボーナスチャンス!</button><div class="wheel" hidden>${Meta.BONUS_WHEEL.map((w, i) => `<span data-w="${i}">${rewardChips(w)}</span>`).join('')}</div></div>` : ''}
       <div class="rs-btns">
         ${nextId ? `<button class="btn big hot" type="button" data-a="next">次のステージ ▶</button>` : ''}
-        ${!win ? `<button class="btn big hot" type="button" data-a="retry">🔁 リベンジ!</button>` : ''}
+        ${!win ? `<button class="btn big hot" type="button" data-a="retry">🔁 ${isRush ? '再挑戦!' : 'リベンジ!'}</button>` : ''}
+        ${isRush ? `<button class="btn big ${win ? 'hot' : ''}" type="button" data-a="rushlist">☠ ボスラッシュへ</button>` : ''}
         ${cfg.mode === 'rank' ? `<button class="btn big ${win ? 'hot' : ''}" type="button" data-a="rank">🏆 もう1戦!</button>` : ''}
         ${win && isStage ? `<button class="btn ghost" type="button" data-a="retry">もう一回</button>` : ''}
         <button class="btn ghost" type="button" data-a="home">ホーム</button>
@@ -697,7 +807,8 @@ const UI = {
       Sound.play('select');
       Modal.closeAll();
       if (a.dataset.a === 'next') Game.startStage(nextId);
-      else if (a.dataset.a === 'retry') Game.startStage(cfg.stageId);
+      else if (a.dataset.a === 'retry') { if (isRush) Game.startRush(cfg.bossId); else Game.startStage(cfg.stageId); }
+      else if (a.dataset.a === 'rushlist') Screens.show('rush');
       else if (a.dataset.a === 'rank') Game.startRank();
       else Screens.show(isStage ? 'stages' : 'home');
     });

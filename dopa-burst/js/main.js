@@ -106,6 +106,15 @@ const Game = {
     });
   },
 
+  startRush(id) {
+    if (!this.checkDeck()) return;
+    const b = BOSSES[id];
+    BUI.start({
+      mode: 'rush', bossId: id, boss: true, rush: true, quote: b.quote,
+      player: Object.assign(this.playerCfg(), { hp: RUSH_PLAYER_HP }), enemy: rushConfig(id),
+    });
+  },
+
   startRank() {
     if (!this.checkDeck()) return;
     const rival = rivalConfig(Meta.save.rank.rp);
@@ -117,6 +126,8 @@ const Game = {
     if (cfg.mode === 'stage') {
       out = Meta.stageResult(cfg.stageId, res);
       if (cfg.tutorial && res.win) Meta.save.flags.tutorialDone = true;
+    } else if (cfg.mode === 'rush') {
+      out = Meta.rushResult(cfg.bossId, res);
     } else {
       out = Meta.rankResult(res, cfg.enemy);
     }

@@ -173,7 +173,7 @@ const AI = {
       P: [cp(G.P[0]), cp(G.P[1])],
       stats: G.stats.map(x => Object.assign({}, x)),
       field: G.field ? Object.assign({}, G.field) : null,
-      busy: false,
+      busy: false, bossBusy: false,
     });
   },
   withG(B, G, fn) {

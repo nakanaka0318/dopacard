@@ -27,9 +27,11 @@ const BUI = {
           <div class="hero hero-e" data-p="1">
             <div class="hero-ava" data-p="1"><span></span><div class="reach">リーチ!</div></div>
             <div class="hero-body">
+              <div class="boss-title" hidden></div>
               <div class="hero-name"></div>
-              <div class="hpbar"><i class="hp-ghost"></i><i class="hp-fill"></i><span class="hp-num"></span></div>
+              <div class="hpbar"><i class="hp-ghost"></i><i class="hp-fill"></i><span class="hp-marks"></span><span class="hp-num"></span></div>
               <div class="hero-sub"><span class="ehand"></span><span class="edeck"></span><span class="epassive"></span></div>
+              <div class="boss-row" hidden><button type="button" class="ult-chip"></button><span class="phase-chip"></span></div>
             </div>
             <div class="e-fever" hidden><i></i><span>FEVER</span></div>
           </div>
@@ -125,16 +127,95 @@ const BUI = {
     this.layout();
     this.sync();
     $('.e-fever', this.root).hidden = !cfg.enemy.fever;
+    this.setupBoss(cfg);
     $('.epassive', this.root).innerHTML = cfg.enemy.passive ? `<button type="button" class="passive-chip">⚠ ${esc(cfg.enemy.passive.name)}</button>` : '';
     const pc = $('.passive-chip', this.root);
     if (pc) pc.addEventListener('click', () => this.strip(`<div class="dt-head"><span class="dt-name">⚠ ${esc(cfg.enemy.passive.name)}</span></div><div class="dt-text">${esc(cfg.enemy.passive.text)}</div>`));
     this.updateSpeedBtn();
-    Sound.bgm(cfg.boss ? 'boss' : 'battle');
+    Sound.bgm(this.bgmName());
     this.applyField();
-    await this.intro(cfg);
+    await (cfg.rush ? this.rushIntro(cfg) : this.intro(cfg));
     this.tutorial('start');
     await B.begin();
     this.afterAction();
+  },
+
+  bgmName() {
+    const c = this.cfg, G = B.G;
+    if (c && c.rush) return G && G.P[1].phase > 0 ? 'rush2' : 'rush';
+    return c && c.boss ? 'boss' : 'battle';
+  },
+  // ボスラッシュ用の表示（二つ名・覚醒ライン・必殺技カウント）
+  setupBoss(cfg) {
+    const b = cfg.rush ? cfg.enemy.boss : null;
+    const he = $('.hero-e', this.root);
+    this.stage.classList.toggle('rush', !!b);
+    this.stage.classList.remove('awakened');
+    he.classList.toggle('boss-hud', !!b);
+    he.style.setProperty('--bc', b ? b.color : '');
+    $('.boss-title', he).hidden = !b;
+    $('.boss-row', he).hidden = !b;
+    $('.hp-marks', he).innerHTML = b ? b.phases.map(ph => `<i style="left:${ph.at * 100}%"></i>`).join('') : '';
+    if (!b) return;
+    $('.boss-title', he).textContent = `No.${String(b.no).padStart(2, '0')} ${b.title}`;
+    const uc = $('.ult-chip', he);
+    uc.onclick = () => {
+      const P = B.G.P[1];
+      this.strip(`<div class="dt-head"><span class="dt-rar" style="--rc:#ff2244">必殺</span><span class="dt-name">☠ ${esc(b.ult.name)}</span></div><div class="dt-text">${esc(b.ult.text)}</div><div class="dt-kws"><span><b>⏳ ${P.ultCd <= 1 ? '次の相手のターンに発動！' : `あと${P.ultCd}ターン`}</b> 相手のターン開始時にカウントが減り、0で発動</span></div>`
+        + b.phases.map(ph => `<div class="dt-kws"><span><b>${P.phase > b.phases.indexOf(ph) ? '✅' : '🔥'} 覚醒（HP${Math.round(ph.at * 100)}%以下）「${esc(ph.name)}」</b> ${esc(ph.text)}</span></div>`).join(''));
+    };
+  },
+  syncBoss() {
+    const G = B.G, E = G.P[1], b = E.boss;
+    if (!b) return;
+    const he = $('.hero-e', this.root);
+    const uc = $('.ult-chip', he);
+    const soon = E.ultCd <= 1;
+    const html = `☠ <b>${esc(b.ult.name)}</b> <em>${soon ? '次のターン!!' : `あと${E.ultCd}`}</em>`;
+    if (uc.innerHTML !== html) uc.innerHTML = html;
+    uc.classList.toggle('soon', soon);
+    const pc = $('.phase-chip', he);
+    const pt = E.phase > 0 ? (b.phases.length > 1 ? `覚醒${E.phase}` : '覚醒') : '';
+    if (pc.textContent !== pt) pc.textContent = pt;
+    pc.hidden = !pt;
+    $$('.hp-marks i', he).forEach((m, i) => m.classList.toggle('passed', E.phase > i));
+  },
+
+  // ボスラッシュの登場演出：警報 → 闇から姿 → 二つ名 → 名前を叩きつける
+  async rushIntro(cfg) {
+    if (Time.headless) return;
+    const b = cfg.enemy.boss, t = BOSS_TIERS[b.tier - 1];
+    const ov = el('div', 'boss-intro');
+    ov.style.setProperty('--bc', b.color);
+    const band = 'WARNING ⚠ BOSS APPROACHING ⚠ '.repeat(6);
+    ov.innerHTML = `
+      <div class="bi-scan"></div>
+      <div class="bi-band top"><span>${band}</span></div>
+      <div class="bi-band bot"><span>${band}</span></div>
+      <div class="bi-warn">WARNING</div>
+      <div class="bi-center">
+        <div class="bi-no">BOSS RUSH No.${String(b.no).padStart(2, '0')} ・ ${t.name}「${t.sub}」</div>
+        <div class="bi-ava">${b.avatar}</div>
+        <div class="bi-title">― ${esc(b.title)} ―</div>
+        <div class="bi-name">${esc(b.name)}</div>
+        <div class="bi-hp">HP <b>${fmt(cfg.enemy.hp)}</b> <span>${'☠'.repeat(b.tier)}</span></div>
+        <div class="bi-quote">「${esc(b.quote)}」</div>
+      </div>
+      <div class="vs-skip">タップでスキップ</div>`;
+    this.root.appendChild(ov);
+    Sound.bgm(null);
+    Sound.play('siren');
+    let done;
+    const p = new Promise(r => (done = r));
+    const tm = [];
+    tm.push(setTimeout(() => { Sound.play('ult'); }, 900));
+    tm.push(setTimeout(() => { Sound.play('hitHeavy'); FX.shake(5); FX.flash(b.color, 0.35, 300); }, 1750));
+    tm.push(setTimeout(done, 3900));
+    ov.addEventListener('pointerdown', () => { tm.forEach(clearTimeout); done(); });
+    await p;
+    Sound.bgm(this.bgmName());
+    ov.classList.add('out');
+    setTimeout(() => ov.remove(), 350);
   },
 
   async intro(cfg) {
@@ -298,6 +379,7 @@ const BUI = {
     fb.classList.toggle('ready', P.fever >= 100 && !P.feverOn);
     fb.classList.toggle('on', P.feverOn);
     fb.disabled = !ready;
+    if (E.boss) this.syncBoss();
     const ef = $('.e-fever', this.root);
     if (ef) {
       ef.querySelector('i').style.width = (E.feverOn ? 100 : E.fever) + '%';
@@ -916,12 +998,19 @@ const View = {
       }
     } else {
       // 敵のカードは中央で見せてから飛ばす
-      if (RARITY[def.rarity].rank >= 3) BUI.enemySay(R.pick(['これでどうだ!', '切り札の出番だ!', '見せてやろう、本気を!']));
+      if (def.rarity === 'EX') BUI.enemySay(R.pick(['これが我が力…EXカードだ!', 'ボスだけの特権だ!', '受けてみよ!']));
+      else if (RARITY[def.rarity].rank >= 3) BUI.enemySay(R.pick(['これでどうだ!', '切り札の出番だ!', '見せてやろう、本気を!']));
       const eh = centerOf($('.hero-e', BUI.root));
       await animate(fly, [
         { transform: `translate(${eh.x}px, ${eh.y}px) translate(-50%,-50%) scale(.3) rotateY(180deg)`, opacity: 0 },
         { transform: `translate(${board.x}px, ${board.y}px) translate(-50%,-50%) scale(1.45) rotateY(0deg)`, opacity: 1 },
       ], { duration: 300, easing: 'cubic-bezier(.2,1.2,.4,1)' });
+      if (def.rarity === 'EX') {
+        Sound.play('reach'); FX.flash('#ff2244', 0.25, 260); FX.shake(2);
+        FX.rays(board.x, board.y, { color: '#ff2244', size: 320, life: 1 });
+        FX.popText(board.x, board.y - BUI.hw * 1.3, 'EX CARD!!', 'pop-ex', { size: 34, dx: 0, dur: 1100 });
+        await wait(300);
+      }
       await wait(def.type === 'unit' ? 450 : 600);
       await animate(fly, [
         { transform: `translate(${board.x}px, ${board.y}px) translate(-50%,-50%) scale(1.45)` },
@@ -1376,7 +1465,7 @@ const View = {
     } else if (pi === 0) {
       BUI.stage.classList.remove('fever-on');
       document.body.classList.remove('fever-on');
-      Sound.bgm(BUI.cfg && BUI.cfg.boss ? 'boss' : 'battle');
+      Sound.bgm(BUI.bgmName());
       BUI.applyField();
     }
   },
@@ -1409,7 +1498,110 @@ const View = {
   async passive(pi, pas) {
     const h = centerOf($('.hero-e', BUI.root));
     FX.popText(h.x, h.y + 40, '⚠ ' + pas.name, 'pop-warnlabel', { dx: 0, dur: 1100 });
+    if (BUI.cfg && BUI.cfg.rush) { BUI.log('⚠', `ボスの常時能力「${esc(pas.name)}」`, 'op'); Sound.play('dark'); animate($('.hero-e .hero-ava', BUI.root), [{ filter: 'brightness(1)' }, { filter: 'brightness(2.2) drop-shadow(0 0 12px #ff2244)' }, { filter: 'brightness(1)' }], { duration: 500 }); }
     return wait(250);
+  },
+
+  /* ---- ボスラッシュ ---- */
+  // 必殺技：画面を黒帯で切って、ボスの顔と技名をドーンと出す
+  async bossUlt(pi, u) {
+    const b = B.G.P[pi].boss;
+    BUI.log('☠', `ボスの必殺技「${esc(u.name)}」！ ${esc(u.text)}`, 'op');
+    BUI.tip('ult', '☠ <b>必殺技</b>：ボスは数ターンごとに強力な技を撃ってくる。右上の<b>☠カウント</b>を見て、来る前に備えよう！');
+    const c = el('div', 'ult-cut');
+    c.style.setProperty('--bc', b.color);
+    c.innerHTML = `<div class="uc-bar top"></div><div class="uc-bar bot"></div>
+      <div class="uc-ava">${b.avatar}</div>
+      <div class="uc-txt"><div class="uc-k">☠ ULTIMATE ☠</div><div class="uc-name">${esc(u.name)}</div><div class="uc-desc">${esc(u.text)}</div></div>`;
+    BUI.ov.appendChild(c);
+    Sound.play('ult');
+    vibrate([60, 40, 160]);
+    FX.flash('#000000', 0.5, 300);
+    await wait(700);
+    FX.shake(6);
+    FX.flash(b.color, 0.45, 350);
+    const h = centerOf($('.hero-e', BUI.root));
+    FX.rays(h.x, h.y, { color: '#ff2244', size: 520, life: 1.2 });
+    await wait(1100);
+    c.classList.add('out');
+    await wait(220);
+    c.remove();
+  },
+  // 覚醒：白→赤のフラッシュ、ひび割れ、BGMが切り替わる
+  async bossPhase(pi, phase, ph) {
+    const P = B.G.P[pi], b = P.boss;
+    BUI.log('🔥', `ボスが覚醒！「${esc(ph.name)}」 ${esc(ph.text)}`, 'op');
+    BUI.tip('awaken', '🔥 <b>覚醒</b>：ボスはHPが減ると覚醒して戦い方が変わる。HPバーの<b>白い線</b>が覚醒ライン');
+    BUI.deselect(true);
+    const c = el('div', 'awaken');
+    c.style.setProperty('--bc', b.color);
+    c.innerHTML = `<div class="aw-crack"></div><div class="aw-ava">${b.avatar}</div>
+      <div class="aw-main">覚醒!!</div><div class="aw-name">${b.phases.length > 1 ? `PHASE ${phase + 1} ・ ` : ''}${esc(ph.name)}</div>
+      <div class="aw-line">「${esc(ph.line)}」</div><div class="aw-desc">${esc(ph.text)}</div>`;
+    BUI.ov.appendChild(c);
+    Sound.bgm(null);
+    Sound.play('awaken');
+    vibrate([100, 60, 100, 60, 300]);
+    await wait(720);
+    FX.flash('#ffffff', 0.85, 250);
+    FX.shake(9);
+    const h = centerOf($('.hero-e', BUI.root));
+    FX.burst(h.x, h.y, { count: 90, colors: [b.color, '#ff2244', '#fff'], speed: 14, type: 'shard', size: 8 });
+    FX.ring(h.x, h.y, { color: '#ff2244', size: 30, grow: 22, width: 10 });
+    BUI.stage.classList.add('awakened');
+    BUI.syncBoss();
+    await wait(1700);
+    Sound.bgm(BUI.bgmName());
+    c.classList.add('out');
+    await wait(250);
+    c.remove();
+  },
+  async bounce(u) {
+    const e = BUI.unitEls.get(u.uid);
+    BUI.log('⌛', `${esc(u.def.name)}が手札に戻された`);
+    Sound.play('whoosh');
+    if (e) {
+      const to = centerOf(u.owner === 0 ? $('.hand', BUI.root) : $('.hero-e', BUI.root));
+      const a = e.getBoundingClientRect();
+      e.classList.add('dying');
+      await animate(e, [
+        { transform: 'translate(0,0) scale(1)', opacity: 1, filter: 'brightness(1)' },
+        { transform: `translate(${to.x - a.left - a.width / 2}px, ${to.y - a.top - a.height / 2}px) scale(.3) rotate(-30deg)`, opacity: 0, filter: 'brightness(2.5)' },
+      ], { duration: 380, easing: 'ease-in' });
+      e.remove();
+      BUI.unitEls.delete(u.uid);
+    }
+    const p = centerOf(BUI.slotEl(u.owner, u.lane));
+    FX.popText(p.x, p.y - 20, '手札へ!', 'pop-label');
+    BUI.sync();
+    if (u.owner === 0) BUI.syncHand();
+  },
+  async debuff(u, v) {
+    const e = BUI.unitEls.get(u.uid), p = BUI.posOf(u);
+    if (e) { updateUnitEl(e, u); animate(e, [{ filter: 'brightness(1)' }, { filter: 'grayscale(1) brightness(.6)' }, { filter: 'brightness(1)' }], { duration: 320 }); }
+    if (v) FX.popText(p.x, p.y, `ATK-${v}`, 'pop-dark');
+    Sound.play('dark');
+    return wait(120);
+  },
+  async discardCard(pi, c) {
+    const def = CARDS[c.id];
+    BUI.log('🗑️', `${pi === 0 ? 'あなた' : '相手'}の手札「${esc(def.name)}」が捨てられた`);
+    if (pi !== 0) { BUI.sync(); return wait(80); }
+    BUI.syncHand();
+    const board = centerOf($('.board', BUI.root));
+    const fly = cardEl(def, { cls: 'fly-card' });
+    fly.style.setProperty('--hw', BUI.hw + 'px');
+    fly.style.setProperty('--hh', Math.round(BUI.hw * 1.4) + 'px');
+    document.body.appendChild(fly);
+    Sound.play('burn');
+    await animate(fly, [
+      { transform: `translate(${board.x}px, ${innerHeight - 90}px) translate(-50%,-50%) scale(1)`, opacity: 1 },
+      { transform: `translate(${board.x}px, ${board.y}px) translate(-50%,-50%) scale(1.3) rotate(-6deg)`, opacity: 1, filter: 'brightness(1)', offset: 0.45 },
+      { transform: `translate(${board.x}px, ${board.y - 30}px) translate(-50%,-50%) scale(1.1) rotate(8deg)`, opacity: 0, filter: 'brightness(.2) sepia(1) saturate(4) hue-rotate(-30deg)' },
+    ], { duration: 650, easing: 'ease-in' });
+    FX.burst(board.x, board.y, { count: 26, colors: ['#ff7a2e', '#ffd166', '#222'], speed: 5, gravity: -0.15 });
+    FX.popText(board.x, board.y - 40, '捨てられた…', 'pop-dark');
+    fly.remove();
   },
   async energy(pi, n) {
     BUI.sync();
@@ -1586,8 +1778,15 @@ const View = {
       await waitReal(250);
       Sound.play('win');
       FX.confetti(180);
-      await FX.banner('K.O.!!', { cls: 'b-ko', dur: 1600 });
+      if (BUI.cfg && BUI.cfg.rush) {
+        const b = BUI.cfg.enemy.boss;
+        BUI.enemySay(b.lose);
+        FX.flash('#ff2244', 0.4, 400);
+        FX.burst(p.x, p.y, { count: 120, colors: [b.color, '#ff2244', '#ffd23f', '#fff'], speed: 18, type: 'shard', size: 10 });
+        await FX.banner('BOSS BREAK!!', { cls: 'b-ko b-break', sub: `No.${String(b.no).padStart(2, '0')} ${b.name} 撃破!!`, dur: 2000 });
+      } else await FX.banner('K.O.!!', { cls: 'b-ko', dur: 1600 });
     } else {
+      if (BUI.cfg && BUI.cfg.rush) BUI.enemySay(BUI.cfg.enemy.boss.win);
       Sound.play('lose');
       await FX.banner(res && res.surrender ? '降参…' : 'DEFEAT…', { cls: 'b-lose', dur: 1400 });
     }
