@@ -384,7 +384,8 @@ const AI = {
       case 'se_sweep': { const es = B.units(1 - pi).filter(u => u.def.cost <= 2); return es.reduce((a, u) => a + (u.shield ? 0.3 : u.hp <= 30 ? this.uval(B, u) * 1.1 : 1), 0) - 0.5; }
       case 'hx_curse': return 3.5 - (E.curse || 0) * 0.4;
       case 'ti_seed': return P.maxEnergy < 9 ? 3 : 0.5;
-      case 'ti_awaken': return P.hand.some(c => CARDS[c.id].cost >= 6 && CARDS[c.id].cost - 3 <= P.energy - 1) ? 5 : 0.2;
+      case 'ti_awaken': return P.hand.some(c => CARDS[c.id].cost >= 6 && CARDS[c.id].cost - 2 <= P.energy - 1) ? 5 : 0.2;
+      case 'n_dopa': return P.fever >= 65 && P.fever < 100 ? 3 : 0.5;
       case 'sw_call': return B.emptyLanes(pi).length * 1.1;
       case 'ty_box': return Math.min(2, B.emptyLanes(pi).length) * 1.6;
       case 'h_rain': return B.units(pi).reduce((a, u) => a + Math.min(30, u.maxHp - u.hp), 0) / 10 * 0.6 + Math.min(30, P.maxHp - P.hp) / 10 * 0.5;

@@ -2365,8 +2365,8 @@ const CARD_LIST = [
   { id: 'n_hammer', name: 'ピコピコハンマー', emoji: '🔨', tribe: 'neutral', rarity: 'N', type: 'spell', cost: 2, target: 'enemyUnit', text: '敵ユニット1体に30ダメージ。倒したらカードを1枚引く',
     ai: { t: 'dmgUnit', v: 30 },
     cast: async (B, pi, t) => { await B.damage(B.spellSrc(pi), t, 30, { fx: 'hit' }); await B.processDeaths(); if (t.hp <= 0 || t.removed) await B.draw(pi, 1); } },
-  { id: 'n_dopa', name: 'ドーパミン注射', emoji: '💊', tribe: 'neutral', rarity: 'R', type: 'spell', cost: 0, target: 'none', text: 'フィーバーゲージ+35。カードを1枚引く',
-    ai: { t: 'draw', v: 1 }, cast: async (B, pi) => { await B.addFever(pi, 35); await B.draw(pi, 1); } },
+  { id: 'n_dopa', name: 'ドーパミン注射', emoji: '💊', tribe: 'neutral', rarity: 'R', type: 'spell', cost: 0, target: 'none', text: 'フィーバーゲージ+35',
+    ai: { t: 'custom' }, cast: async (B, pi) => { await B.addFever(pi, 35); } },
   { id: 'n_colosseum', name: 'コロシアム', emoji: '🏟️', tribe: 'neutral', rarity: 'R', type: 'field', cost: 2, text: 'フィールド：すべてのユニットのATK+20（敵も）',
     fieldAtk: (B, u, owner) => 20, ambient: 'neutral' },
   { id: 'n_dragon', name: 'ドパミンドラゴン', emoji: '🐉', tribe: 'neutral', rarity: 'SSR', type: 'unit', cost: 6, atk: 60, hp: 60, kw: ['fly'], text: '登場時：フィーバーゲージ+50',
@@ -2394,8 +2394,8 @@ const CARD_LIST = [
       if (o) await B.damage(u, o, 30, { fx: 'fire' });
       await B.damage(u, B.hero(1 - u.owner), 30, { fx: 'fire' });
     } },
-  { id: 'b_rage', name: 'ブチギレ', emoji: '💢', tribe: 'blaze', rarity: 'N', type: 'spell', cost: 1, target: 'allyUnit', text: '味方1体のATK+30、貫通を得る',
-    ai: { t: 'buff', a: 30, h: 0 }, cast: async (B, pi, t) => { await B.buff(t, 30, 0); B.giveKw(t, 'pierce'); } },
+  { id: 'b_rage', name: 'ブチギレ', emoji: '💢', tribe: 'blaze', rarity: 'N', type: 'spell', cost: 1, target: 'allyUnit', text: '味方1体のATK+10、貫通を得る',
+    ai: { t: 'buff', a: 10, h: 0 }, cast: async (B, pi, t) => { await B.buff(t, 10, 0); B.giveKw(t, 'pierce'); } },
   { id: 'b_fireball', name: 'ファイアボール', emoji: '🔥', tribe: 'blaze', rarity: 'N', type: 'spell', cost: 2, target: 'enemyUnit', text: '敵ユニット1体に40ダメージ。余ったダメージは敵ヒーローへ',
     ai: { t: 'dmgUnit', v: 40 }, cast: async (B, pi, t) => { await B.damage(B.spellSrc(pi), t, 40, { fx: 'fire', pierce: true }); } },
   { id: 'b_boar', name: '爆走イノシシ', emoji: '🐗', tribe: 'blaze', rarity: 'R', type: 'unit', cost: 3, atk: 40, hp: 30, kw: ['pierce'], text: '' },
@@ -2487,8 +2487,8 @@ const CARD_LIST = [
   { id: 'ne_bat', name: '吸血コウモリ', emoji: '🦇', tribe: 'necro', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 20, kw: ['drain'], text: '' },
   { id: 'ne_drain', name: 'ソウルドレイン', emoji: '🩸', tribe: 'necro', rarity: 'N', type: 'spell', cost: 2, target: 'enemyUnit', text: '敵ユニット1体に30ダメージ。自分のヒーローを30回復',
     ai: { t: 'dmgUnit', v: 30 }, cast: async (B, pi, t) => { await B.damage(B.spellSrc(pi), t, 30, { fx: 'dark' }); await B.heal(B.hero(pi), 30); } },
-  { id: 'ne_sacrifice', name: 'いけにえ', emoji: '🗡️', tribe: 'necro', rarity: 'N', type: 'spell', cost: 0, target: 'allyUnit', text: '味方1体を破壊する。カードを2枚引き、フィーバー+20',
-    ai: { t: 'custom' }, cast: async (B, pi, t) => { await B.destroy(t); await B.draw(pi, 2); await B.addFever(pi, 20); } },
+  { id: 'ne_sacrifice', name: 'いけにえ', emoji: '🗡️', tribe: 'necro', rarity: 'N', type: 'spell', cost: 0, target: 'allyUnit', text: '味方1体を破壊する。カードを1枚引き、フィーバー+20',
+    ai: { t: 'custom' }, cast: async (B, pi, t) => { await B.destroy(t); await B.draw(pi, 1); await B.addFever(pi, 20); } },
   { id: 'ne_zombie', name: 'ゾンビ', emoji: '🧟', tribe: 'necro', rarity: 'R', type: 'unit', cost: 3, atk: 30, hp: 40, kw: ['undying'], text: '' },
   { id: 'ne_spider', name: 'どくグモ', emoji: '🕷️', tribe: 'necro', rarity: 'R', type: 'unit', cost: 3, atk: 10, hp: 30, kw: ['poison'], text: '' },
   { id: 'ne_revive', name: '死者蘇生', emoji: '⚰️', tribe: 'necro', rarity: 'R', type: 'spell', cost: 2, target: 'none', text: '墓地のランダムなユニット1体を空きマスに復活。できなければ1枚引く',
@@ -2750,8 +2750,8 @@ const CARD_LIST = [
       for (let i = 0; i < n; i++) { await B.damage(B.spellSrc(pi), B.randomEnemy(pi), 20, { fx: 'bolt' }); await B.processDeaths(); }
     } },
   { id: 'a_tome', name: '魔導書の写本', emoji: '📖', tribe: 'arcane', rarity: 'R', type: 'spell', cost: 0, target: 'none',
-    text: 'カードを1枚引く。このターン使ったスペルが2枚以上なら、さらに1枚引く', ai: { t: 'draw', v: 1.5 },
-    cast: async (B, pi) => { await B.draw(pi, B.G.spellsTurn >= 2 ? 2 : 1); } },
+    text: 'カードを1枚引く', ai: { t: 'draw', v: 1 },
+    cast: async (B, pi) => { await B.draw(pi, 1); } },
   { id: 'a_merlin', name: '大魔導士メルリン', emoji: '🧙‍♂️', tribe: 'arcane', rarity: 'SR', type: 'unit', cost: 5, atk: 30, hp: 40,
     text: 'このターン使ったスペル1枚につきコスト-1。味方がスペルを使うたび、敵ヒーローに20ダメージ',
     costMod: (B, pi) => (B.G.active === pi ? B.G.spellsTurn || 0 : 0),
@@ -2821,8 +2821,8 @@ const CARD_LIST = [
   { id: 'ti_golem', name: '鉱石ゴーレム', emoji: '🪨', tribe: 'titan', rarity: 'N', type: 'unit', cost: 4, atk: 20, hp: 50,
     text: '登場時：最大PP+1', onPlay: async (B, u) => { await B.rampPP(u.owner, 1); } },
   { id: 'ti_awaken', name: '巨人の目覚め', emoji: '⛰️', tribe: 'titan', rarity: 'R', type: 'spell', cost: 1, target: 'none',
-    text: 'このターン、手札のコスト6以上のカードのコスト-3。カードを1枚引く', ai: { t: 'custom' },
-    cast: async (B, pi) => { B.P(pi).bigDiscount = (B.P(pi).bigDiscount || 0) + 3; await B.draw(pi, 1); B.V('sync'); } },
+    text: 'このターン、手札のコスト6以上のカードのコスト-2', ai: { t: 'custom' },
+    cast: async (B, pi) => { B.P(pi).bigDiscount = (B.P(pi).bigDiscount || 0) + 2; B.V('sync'); } },
   { id: 'ti_wyrm', name: '山岳の古竜', emoji: '🐉', tribe: 'titan', rarity: 'SR', type: 'unit', cost: 6, atk: 80, hp: 80,
     text: '登場時：敵ユニット全員に30ダメージ',
     onPlay: async (B, u) => { await B.quake(); await B.damageMany(u, B.units(1 - u.owner), 30, { fx: 'quake' }); } },
@@ -4425,7 +4425,8 @@ const AI = {
       case 'se_sweep': { const es = B.units(1 - pi).filter(u => u.def.cost <= 2); return es.reduce((a, u) => a + (u.shield ? 0.3 : u.hp <= 30 ? this.uval(B, u) * 1.1 : 1), 0) - 0.5; }
       case 'hx_curse': return 3.5 - (E.curse || 0) * 0.4;
       case 'ti_seed': return P.maxEnergy < 9 ? 3 : 0.5;
-      case 'ti_awaken': return P.hand.some(c => CARDS[c.id].cost >= 6 && CARDS[c.id].cost - 3 <= P.energy - 1) ? 5 : 0.2;
+      case 'ti_awaken': return P.hand.some(c => CARDS[c.id].cost >= 6 && CARDS[c.id].cost - 2 <= P.energy - 1) ? 5 : 0.2;
+      case 'n_dopa': return P.fever >= 65 && P.fever < 100 ? 3 : 0.5;
       case 'sw_call': return B.emptyLanes(pi).length * 1.1;
       case 'ty_box': return Math.min(2, B.emptyLanes(pi).length) * 1.6;
       case 'h_rain': return B.units(pi).reduce((a, u) => a + Math.min(30, u.maxHp - u.hp), 0) / 10 * 0.6 + Math.min(30, P.maxHp - P.hp) / 10 * 0.5;
