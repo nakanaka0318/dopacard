@@ -71,6 +71,36 @@ function rushCTA() {
     <span class="cr-faces">${BOSS_LIST.slice(-3).map(b => `<i>${b.avatar}</i>`).join('')}</span></span>
   </button>`;
 }
+// バトル前にデッキを切り替えるボタン
+function deckChipHTML() {
+  const d = Meta.activeDeck();
+  return `<button type="button" class="deck-chip" data-deckpick>🃏 <b>${esc(d.name)}</b> <span>${Meta.deckTribes(d.cards)}</span><em>切替 ▼</em></button>`;
+}
+function bindDeckChip(root) {
+  const b = $('[data-deckpick]', root);
+  if (!b) return;
+  b.addEventListener('click', () => {
+    Sound.play('tap');
+    const sv = Meta.save;
+    const box = Modal.open(`<h2>使うデッキ</h2><div class="dp-list">${sv.decks.map((d, i) => d ? `<button type="button" class="dp-row ${i === sv.deckIdx ? 'on' : ''}" data-i="${i}" ${Meta.validDeck(d.cards) ? '' : 'disabled'}>
+        <span class="dp-ic">${Meta.deckTribes(d.cards)}</span><span class="dp-name">${esc(d.name)}</span><span class="dp-st">${i === sv.deckIdx ? '使用中' : Meta.validDeck(d.cards) ? '' : '未完成'}</span></button>` : '').join('')}</div>
+      <div class="sd-btns"><button class="btn ghost" type="button" data-a="edit">🃏 編成する</button><button class="btn" type="button" data-a="c">閉じる</button></div>`, { cls: 'dp-modal' });
+    box.addEventListener('click', ev => {
+      const row = ev.target.closest('[data-i]');
+      if (row) {
+        Meta.useDeck(+row.dataset.i);
+        Sound.play('select');
+        Modal.close();
+        b.outerHTML = deckChipHTML();
+        bindDeckChip(root);
+        return;
+      }
+      const a = ev.target.closest('[data-a]'); if (!a) return;
+      Modal.closeAll();
+      if (a.dataset.a === 'edit') Screens.show('deck');
+    });
+  });
+}
 const dangerHTML = t => `<span class="danger">${'☠'.repeat(t)}<i>${'☠'.repeat(4 - t)}</i></span>`;
 
 const UI = {
@@ -143,7 +173,7 @@ const UI = {
         <div class="menu-grid">
           <button type="button" data-go="rank" class="mg-rank"><span class="mg-ic">🏆</span><span class="mg-t">ランク戦</span><small style="color:${rk.color}">${rk.icon} ${rk.name}${s.rank.streak >= 2 ? ` ・ ${s.rank.streak}連勝中🔥` : ''}</small></button>
           <button type="button" data-go="gacha" class="mg-gacha"><span class="mg-ic">🎴</span><span class="mg-t">ガチャ</span><small>SSR確定まで${Meta.PITY_MAX - s.pity}</small>${free ? `<i class="badge">${free}</i>` : ''}</button>
-          <button type="button" data-go="deck"><span class="mg-ic">🃏</span><span class="mg-t">デッキ</span><small>${Meta.validDeck(s.deck) ? '20/20 OK' : '<b class="warn">要編成</b>'}</small></button>
+          <button type="button" data-go="deck"><span class="mg-ic">🃏</span><span class="mg-t">デッキ</span><small>${Meta.validDeck(s.deck) ? esc(Meta.activeDeck().name) : '<b class="warn">要編成</b>'}</small></button>
           <button type="button" data-go="dex"><span class="mg-ic">📖</span><span class="mg-t">図鑑</span><small>${col.got}/${col.total}（${col.pct}%）</small>${s.newCards.length ? `<i class="badge new">NEW</i>` : ''}</button>
           <button type="button" data-go="missions"><span class="mg-ic">🎯</span><span class="mg-t">ミッション</span><small>毎日更新</small>${claim ? `<i class="badge">${claim}</i>` : ''}</button>
           <button type="button" data-go="shop" class="mg-shop"><span class="mg-ic">🛒</span><span class="mg-t">交換所</span><small>コインで確定GET</small></button>
@@ -262,7 +292,9 @@ const UI = {
       ${p ? `<div class="sd-passive">⚠ <b>${esc(p.name)}</b>：${esc(p.text)}</div>` : ''}
       <div class="sd-conds">${conds.map((c, i) => `<div class="${(m >> i) & 1 ? 'done' : ''}"><i>★</i>${c}</div>`).join('')}</div>
       <div class="sd-rw">報酬：🪙${60 + s.level * 15}〜 ${m ? '' : `<em>初回クリア 🪙+${150 + s.level * 30} ${s.boss ? '💎×1' : s.level >= 1 ? '🎫×1' : ''}</em>`}</div>
+      ${deckChipHTML()}
       <div class="sd-btns"><button class="btn ghost" type="button" data-a="deck">デッキ</button><button class="btn big hot" type="button" data-a="go">⚔ バトル開始!</button></div>`, { cls: 'stage-modal' });
+    bindDeckChip(box);
     box.addEventListener('click', ev => {
       const a = ev.target.closest('[data-a]');
       if (!a) return;
@@ -345,7 +377,9 @@ const UI = {
       <div class="bd-cards"></div>
       <div class="bd-rec">${w ? `<span class="win">撃破 ${w}回 ・ 最速 ${rs.fastest[id]}R</span>` : `<span>挑戦 ${rs.tries[id] || 0}回 ・ ベスト ${best}%</span>`}</div>
       <div class="sd-rw">${w ? `勝利報酬：🪙${250 + b.no * 25}〜` : `<em>初撃破 ${rewardChips(first)}</em>`}</div>
+      ${deckChipHTML()}
       <div class="sd-btns"><button class="btn ghost" type="button" data-a="deck">デッキ</button><button class="btn big hot rush-go" type="button" data-a="go">☠ 挑む!</button></div>`, { cls: 'boss-modal' });
+    bindDeckChip(box);
     const cw = $('.bd-cards', box);
     b.cards.forEach(cid => {
       const c = cardEl(CARDS[cid], { text: true, cls: 'bd-card' });
@@ -489,12 +523,14 @@ const UI = {
 
   /* ---------- デッキ ---------- */
   deck() {
-    const r = $('#scr-deck');
-    if (!this._deckWork || this._deckWorkFresh !== true) this._deckWork = Meta.save.deck.slice();
+    const r = $('#scr-deck'), sv = Meta.save;
+    if (!(this._deckSlot >= 0) || this._deckWorkFresh !== true) this._deckSlot = sv.deckIdx;
+    if (!this._deckWork || this._deckWorkFresh !== true) this._deckWork = sv.decks[this._deckSlot] ? sv.decks[this._deckSlot].cards.slice() : [];
     this._deckWorkFresh = true;
     this._deckFilter = this._deckFilter || 'all';
     r.innerHTML = `
       <header class="topbar"><button class="back" type="button" aria-label="戻る">‹</button><h2>デッキ編成</h2><div class="deck-count"><b>0</b>/20</div></header>
+      <div class="deck-slots"></div>
       <div class="deck-wrap">
         <div class="deck-side">
           <div class="deck-tools"><button class="btn small" type="button" data-a="auto">✨ おまかせ</button><button class="btn small ghost" type="button" data-a="clear">空にする</button><button class="btn small hot" type="button" data-a="save">保存</button></div>
@@ -516,24 +552,109 @@ const UI = {
       this.renderDeck(); this.renderColl();
     });
     $('[data-a="clear"]', r).addEventListener('click', () => { this._deckWork = []; Sound.play('cancel'); this.renderDeck(); this.renderColl(); });
-    $('[data-a="save"]', r).addEventListener('click', () => this.saveDeck());
-    this.renderDeck(); this.renderColl();
+    $('[data-a="save"]', r).addEventListener('click', () => this.saveDeck(false));
+    this.renderSlots(); this.renderDeck(); this.renderColl();
     Meta.save.newCards = [];
     Meta.persist();
   },
+  // 保存すると、そのデッキがバトルで使うデッキになる
   saveDeck(thenLeave) {
-    const d = this._deckWork;
+    const d = this._deckWork, i = this._deckSlot;
     if (!Meta.validDeck(d)) { Sound.play('error'); FX.toast(`デッキはちょうど20枚にしてね（今${d.length}枚）`); return false; }
-    Meta.save.deck = d.slice(); Meta.persist();
-    this._deckWorkFresh = false;
-    Sound.play('claim'); FX.toast('デッキを保存した！', { cls: 'gold' });
-    if (thenLeave !== false) Screens.show('home');
+    Meta.saveDeckSlot(i, d);
+    Meta.useDeck(i);
+    Sound.play('claim'); FX.toast(`「${esc(Meta.save.decks[i].name)}」を保存して、使うデッキにした！`, { cls: 'gold' });
+    if (thenLeave !== false) { this._deckWorkFresh = false; Screens.show('home'); }
+    else this.renderSlots();
     return true;
   },
+  deckChanged() {
+    const d = this._deckWork, slot = Meta.save.decks[this._deckSlot], saved = slot ? slot.cards : [];
+    return d.length !== saved.length || d.slice().sort().join() !== saved.slice().sort().join();
+  },
+  // 変更があれば保存するか聞いてから next を実行
+  confirmDeckLeave(next) {
+    if (!this.deckChanged()) { next(); return; }
+    const box = Modal.open(`<h2>変更を保存する？</h2><div class="menu-col"><button class="btn hot" type="button" data-a="s">保存する</button><button class="btn ghost" type="button" data-a="d">保存しない</button><button class="btn ghost" type="button" data-a="c">編成を続ける</button></div>`);
+    box.addEventListener('click', ev => {
+      const a = ev.target.closest('[data-a]'); if (!a) return;
+      Modal.close();
+      if (a.dataset.a === 's' && this.saveDeck(false)) next();
+      if (a.dataset.a === 'd') next();
+    });
+  },
+  renderSlots() {
+    const r = $('#scr-deck'), sv = Meta.save, cur = this._deckSlot;
+    const wrap = $('.deck-slots', r);
+    const slot = sv.decks[cur];
+    wrap.innerHTML = `
+      <div class="ds-row">${sv.decks.map((d, i) => d
+        ? `<button type="button" class="ds-chip ${i === cur ? 'cur' : ''} ${i === sv.deckIdx ? 'active' : ''}" data-slot="${i}"><span class="ds-ic">${Meta.deckTribes(d.cards)}</span><span class="ds-name">${esc(d.name)}</span>${i === sv.deckIdx ? '<i class="ds-use">使用中</i>' : Meta.validDeck(d.cards) ? '' : '<i class="ds-ng">未完成</i>'}</button>`
+        : `<button type="button" class="ds-chip empty ${i === cur ? 'cur' : ''}" data-slot="${i}"><span class="ds-ic">＋</span><span class="ds-name">${i === cur ? '新しいデッキ' : '空き'}</span></button>`).join('')}</div>
+      <div class="ds-acts">
+        <button type="button" class="btn small ghost" data-d="rename">✏️ 名前</button>
+        <button type="button" class="btn small ghost" data-d="copy">📋 コピー</button>
+        <button type="button" class="btn small ghost" data-d="del" ${!slot || cur === sv.deckIdx ? 'disabled' : ''}>🗑 削除</button>
+        ${slot && cur !== sv.deckIdx ? `<button type="button" class="btn small hot" data-d="use">✅ このデッキを使う</button>` : ''}
+      </div>`;
+    $$('[data-slot]', wrap).forEach(b => b.addEventListener('click', () => {
+      const i = +b.dataset.slot;
+      if (i === this._deckSlot) return;
+      this.confirmDeckLeave(() => {
+        Sound.play('tap');
+        this._deckSlot = i;
+        this._deckWork = sv.decks[i] ? sv.decks[i].cards.slice() : [];
+        if (!sv.decks[i]) FX.toast('空のデッキ。カードを20枚選ぶか「✨おまかせ」で組もう！');
+        this.renderSlots(); this.renderDeck(); this.renderColl();
+        const c = $('.ds-chip.cur', wrap); if (c) c.parentNode.scrollLeft = Math.max(0, c.offsetLeft - 60);
+      });
+    }));
+    $$('[data-d]', wrap).forEach(b => b.addEventListener('click', () => {
+      const a = b.dataset.d, i = this._deckSlot;
+      if (a === 'rename') {
+        const box = Modal.open(`<h2>デッキの名前</h2><input class="name-in" maxlength="12" value="${esc((sv.decks[i] && sv.decks[i].name) || `デッキ${i + 1}`)}"><div class="sd-btns"><button class="btn ghost" type="button" data-a="c">やめる</button><button class="btn hot" type="button" data-a="ok">決定</button></div>`);
+        const inp = $('.name-in', box); inp.focus(); inp.select();
+        box.addEventListener('click', ev => {
+          const x = ev.target.closest('[data-a]'); if (!x) return;
+          if (x.dataset.a === 'ok') {
+            const name = inp.value.trim() || `デッキ${i + 1}`;
+            if (sv.decks[i]) { sv.decks[i].name = name.slice(0, 12); Meta.persist(); }
+            else Meta.saveDeckSlot(i, this._deckWork, name);
+            Sound.play('select');
+          }
+          Modal.close(); this.renderSlots();
+        });
+      } else if (a === 'copy') {
+        const to = sv.decks.findIndex(x => !x);
+        if (to < 0) { Sound.play('error'); FX.toast(`デッキは${Meta.DECK_SLOTS}個までだよ。どれかを削除してね`); return; }
+        const name = ((sv.decks[i] && sv.decks[i].name) || 'デッキ') + 'のコピー';
+        Meta.saveDeckSlot(to, this._deckWork, name.slice(0, 12));
+        this._deckSlot = to;
+        Sound.play('merge'); FX.toast(`スロット${to + 1}にコピーした！`);
+        this.renderSlots(); this.renderDeck(); this.renderColl();
+      } else if (a === 'del') {
+        const box = Modal.open(`<h2>「${esc(sv.decks[i].name)}」を削除する？</h2><div class="sd-btns"><button class="btn ghost" type="button" data-a="c">やめる</button><button class="btn hot" type="button" data-a="y">削除</button></div>`);
+        box.addEventListener('click', ev => {
+          const x = ev.target.closest('[data-a]'); if (!x) return;
+          Modal.close();
+          if (x.dataset.a === 'y' && Meta.deleteDeckSlot(i)) {
+            Sound.play('cancel');
+            this._deckSlot = sv.deckIdx; this._deckWork = sv.decks[sv.deckIdx].cards.slice();
+            this.renderSlots(); this.renderDeck(); this.renderColl();
+          }
+        });
+      } else if (a === 'use') {
+        this.confirmDeckLeave(() => {
+          if (!Meta.useDeck(i)) { Sound.play('error'); FX.toast('20枚そろったデッキだけ使えるよ'); return; }
+          Sound.play('claim'); FX.toast(`「${esc(sv.decks[i].name)}」を使うデッキにした！`, { cls: 'gold' });
+          this._deckWork = sv.decks[i].cards.slice();
+          this.renderSlots();
+        });
+      }
+    }));
+  },
   leaveDeck() {
-    const d = this._deckWork, saved = Meta.save.deck;
-    const changed = d.length !== saved.length || d.slice().sort().join() !== saved.slice().sort().join();
-    if (!changed) { this._deckWorkFresh = false; Sound.play('cancel'); Screens.show('home'); return; }
+    if (!this.deckChanged()) { this._deckWorkFresh = false; Sound.play('cancel'); Screens.show('home'); return; }
     const box = Modal.open(`<h2>変更を保存する？</h2><div class="menu-col"><button class="btn hot" type="button" data-a="s">保存して戻る</button><button class="btn ghost" type="button" data-a="d">保存せずに戻る</button><button class="btn ghost" type="button" data-a="c">編成を続ける</button></div>`);
     box.addEventListener('click', ev => {
       const a = ev.target.closest('[data-a]'); if (!a) return;

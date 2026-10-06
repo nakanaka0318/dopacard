@@ -52,18 +52,58 @@ const Meta = {
       flags: {}, newCards: [],
       rush: { wins: {}, tries: {}, best: {}, fastest: {}, allClear: false },
       gacha: { focus: null, log: [], freeDate: '' },
+      decks: null, deckIdx: 0,
     };
   },
   load() {
     const d = Store.get(SAVE_KEY, null);
     const base = this.defaults();
     this.save = d && d.v === 1 ? Object.assign(base, d) : base;
+    this.ensureDecks();
     Object.assign(Settings, Store.get(SET_KEY, {}));
     return this.save;
   },
+
+  /* ---------- 複数デッキ（save.deck は使用中デッキの写し） ---------- */
+  DECK_SLOTS: 8,
+  ensureDecks() {
+    const s = this.save;
+    if (!Array.isArray(s.decks) || !s.decks.length) s.decks = [{ name: 'デッキ1', cards: (s.deck || STARTER_DECK).slice() }];
+    while (s.decks.length < this.DECK_SLOTS) s.decks.push(null);
+    s.decks.length = this.DECK_SLOTS;
+    if (!(s.deckIdx >= 0 && s.decks[s.deckIdx])) s.deckIdx = s.decks.findIndex(x => x);
+    s.deck = s.decks[s.deckIdx].cards.slice();
+  },
+  activeDeck() { return this.save.decks[this.save.deckIdx]; },
+  useDeck(i) {
+    const s = this.save, d = s.decks[i];
+    if (!d || !this.validDeck(d.cards)) return false;
+    s.deckIdx = i; s.deck = d.cards.slice();
+    this.persist();
+    return true;
+  },
+  saveDeckSlot(i, cards, name) {
+    const s = this.save;
+    s.decks[i] = { name: (name || (s.decks[i] && s.decks[i].name) || `デッキ${i + 1}`).slice(0, 12), cards: cards.slice() };
+    if (i === s.deckIdx) s.deck = cards.slice();
+    this.persist();
+  },
+  deleteDeckSlot(i) {
+    const s = this.save;
+    if (i === s.deckIdx || s.decks.filter(Boolean).length <= 1) return false;
+    s.decks[i] = null; this.persist();
+    return true;
+  },
+  // デッキの顔ぶれ：多い属性トップ2のアイコン
+  deckTribes(cards) {
+    const cnt = {};
+    cards.forEach(id => { const t = CARDS[id] && CARDS[id].tribe; if (t && t !== 'neutral') cnt[t] = (cnt[t] || 0) + 1; });
+    const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 2).map(e => TRIBES[e[0]].icon).join('');
+    return top || TRIBES.neutral.icon;
+  },
   persist() { Store.set(SAVE_KEY, this.save); },
   saveSettings() { Store.set(SET_KEY, Settings); },
-  reset() { Store.del(SAVE_KEY); this.save = this.defaults(); this.persist(); },
+  reset() { Store.del(SAVE_KEY); this.save = this.defaults(); this.ensureDecks(); this.persist(); },
 
   /* ---------- 通貨・報酬 ---------- */
   grant(rw) {
