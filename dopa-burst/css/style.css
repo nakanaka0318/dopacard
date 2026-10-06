@@ -1407,3 +1407,4 @@ body.reduced .battle-stage.fever-on .board, body.reduced .combo[data-lv="4"], bo
 .dp-st { font-size: 11px; color: var(--lime); }
 .dp-row[disabled] .dp-st { color: #ffb3bd; }
 .name-in { width: 100%; padding: 10px 12px; border-radius: 12px; border: 0; background: var(--ink); color: #fff; font: 700 16px var(--f-body); box-shadow: inset 0 0 0 2px var(--line); margin-bottom: 12px; }
+.curse-badge { position: absolute; left: -6px; bottom: -6px; z-index: 3; padding: 0 6px; border-radius: 99px; background: #3a0a3c; color: #ffc4ff; font: 400 12px/1.5 var(--f-num); box-shadow: 0 0 0 2px #e05be0, 0 0 12px rgba(224, 91, 224, .7); animation: badgeBob 1.2s ease-in-out infinite; }

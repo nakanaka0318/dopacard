@@ -1417,6 +1417,7 @@ body.reduced .battle-stage.fever-on .board, body.reduced .combo[data-lv="4"], bo
 .dp-st { font-size: 11px; color: var(--lime); }
 .dp-row[disabled] .dp-st { color: #ffb3bd; }
 .name-in { width: 100%; padding: 10px 12px; border-radius: 12px; border: 0; background: var(--ink); color: #fff; font: 700 16px var(--f-body); box-shadow: inset 0 0 0 2px var(--line); margin-bottom: 12px; }
+.curse-badge { position: absolute; left: -6px; bottom: -6px; z-index: 3; padding: 0 6px; border-radius: 99px; background: #3a0a3c; color: #ffc4ff; font: 400 12px/1.5 var(--f-num); box-shadow: 0 0 0 2px #e05be0, 0 0 12px rgba(224, 91, 224, .7); animation: badgeBob 1.2s ease-in-out infinite; }
 
 </style>
 </head>
@@ -2300,8 +2301,13 @@ const TRIBES = {
   geo: { name: 'ジオ', icon: '🗺️', color: '#d1a463', desc: '【陣地の軸】マスに陣を刻み、場そのものを味方にする', axis: true },
   arcane: { name: 'アルカナ', icon: '🔮', color: '#7b8cff', desc: '【呪文の軸】スペルを唱えるほど強く、安くなる', axis: true },
   rhythm: { name: 'リズム', icon: '🎵', color: '#ff9f1c', desc: '【連打の軸】このターンのコンボ数で化ける', axis: true },
+  sentinel: { name: 'センチネル', icon: '🗼', color: '#5ad1b0', desc: '【迎撃の軸】出てきた敵を迎え撃ち、速攻を止める', axis: true },
+  hex: { name: 'カース', icon: '🕯️', color: '#e05be0', desc: '【呪いの軸】敵ヒーローに呪いを積み、毎ターン削り続ける', axis: true },
+  titan: { name: 'タイタン', icon: '🗻', color: '#c27c4a', desc: '【巨大化の軸】最大PPを増やし、超高コストの巨獣で押しつぶす', axis: true },
+  swarm: { name: 'スウォーム', icon: '🐝', color: '#e8d84a', desc: '【群れの軸】1枚から何体もの仲間を盤面に並べる', axis: true },
+  toy: { name: 'トイ', icon: '🎈', color: '#ff9a7a', desc: '【トークンの軸】トークンが出るほど、並ぶほど強くなる', axis: true },
 };
-const TRIBE_ORDER = ['neutral', 'blaze', 'storm', 'sugar', 'necro', 'lucky', 'mecha', 'chrono', 'warp', 'mimic', 'risk', 'solo', 'fort', 'bloom', 'geo', 'arcane', 'rhythm'];
+const TRIBE_ORDER = ['neutral', 'blaze', 'storm', 'sugar', 'necro', 'lucky', 'mecha', 'chrono', 'warp', 'mimic', 'risk', 'solo', 'fort', 'bloom', 'geo', 'arcane', 'rhythm', 'sentinel', 'hex', 'titan', 'swarm', 'toy'];
 
 const RARITY = {
   N: { name: 'N', color: '#b9bdd6', rank: 0 },
@@ -2329,12 +2335,14 @@ const KW = {
   warp: { name: 'ワープ', icon: '🌀', desc: '攻撃した後、隣の空きマスへ移動する（正面が空いているマスを優先）' },
   guard: { name: '守護', icon: '🚧', desc: '敵ユニットがヒーローを直接攻撃するとき（飛行も）、代わりにこのユニットが受け止める' },
   armor: { name: 'アーマー', icon: '🪖', desc: '受けるダメージを10減らす' },
+  intercept: { name: '迎撃', icon: '🎯', desc: '正面のマスに敵ユニットが出てきたとき、そのユニットに20ダメージ' },
 };
 const STATUS_INFO = {
   burn: '炎上：自分のターン開始時に（10×数値）ダメージ。毎ターン1ずつ減る',
   frozen: '凍結：次の攻撃ができない',
   count: 'カウント：自分のターン開始時に1減り、0になると効果が発動する。途中で倒されても、その場で発動する',
   preAttack: 'アタック前：アタックを押した直後、攻撃の直前に毎ターン発動する（出したターンから発動）',
+  curse: '呪い：ヒーローに積まれる。そのヒーローのターン開始時に（10×呪い）ダメージ。時間では減らない（最大6）',
   tile: '陣：マスに刻まれる。力の陣＝そのマスの味方ATK+10／守りの陣＝そのマスの味方が受けるダメージ-10／落とし穴＝そのマスに敵ユニットが出ると30ダメージ（1回で消える）',
   hpCost: 'HPコスト：出すときにPPとは別に自分のヒーローのHPを払う（HPは1未満にならない）',
 };
@@ -2584,21 +2592,21 @@ const CARD_LIST = [
       await B.damageMany(u, [...B.units(1 - u.owner), B.hero(1 - u.owner)], 20, { fx: 'fire' });
       await B.destroy(u);
     } },
-  { id: 'c_hourglass', name: '砂時計の番人', emoji: '⌛', tribe: 'chrono', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 40, countdown: 2,
+  { id: 'c_hourglass', name: '砂時計の番人', emoji: '⌛', tribe: 'chrono', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 30, countdown: 2,
     text: 'カウント2：0になると味方全員を+10/+10', onCountdown: async (B, u) => { await B.buffAll(u.owner, 10, 10); } },
   { id: 'c_leap', name: 'タイムリープ', emoji: '⏩', tribe: 'chrono', rarity: 'R', type: 'spell', cost: 1, target: 'none',
     text: '味方全員のカウントを1進める。カードを1枚引く', ai: { t: 'custom' },
     cast: async (B, pi) => { for (const u of B.units(pi)) if (u.count > 0) await B.tickCount(u); await B.draw(pi, 1); } },
   { id: 'c_seer', name: '未来予知の魔女', emoji: '🔮', tribe: 'chrono', rarity: 'SR', type: 'unit', cost: 3, atk: 20, hp: 30, countdown: 1,
-    text: 'カウント1：0になるとカードを2枚引き、PP+2（相手のターン中なら次の自分のターンに）', onCountdown: async (B, u) => { await B.draw(u.owner, 2); await B.gainEnergySoon(u.owner, 2); } },
+    text: 'カウント1：0になるとカードを2枚引き、PP+1（相手のターン中なら次の自分のターンに）', onCountdown: async (B, u) => { await B.draw(u.owner, 2); await B.gainEnergySoon(u.owner, 1); } },
   { id: 'c_tower', name: '終焉の時計塔', emoji: '🕰️', tribe: 'chrono', rarity: 'SSR', type: 'unit', cost: 5, atk: 0, hp: 60, countdown: 2,
-    text: 'カウント2：0になると敵ユニット全員に60ダメージ、敵ヒーローに60ダメージ',
+    text: 'カウント2：0になると敵ユニット全員に50ダメージ、敵ヒーローに50ダメージ',
     onPlay: async (B, u) => { await B.cutin(u, '刻め、終焉のカウントダウン…'); },
     onCountdown: async (B, u) => {
       await B.cutin(u, 'タイムアップ！！');
       await B.quake();
-      await B.damageMany(u, B.units(1 - u.owner), 60, { fx: 'laser' });
-      await B.damage(u, B.hero(1 - u.owner), 60, { fx: 'laser' });
+      await B.damageMany(u, B.units(1 - u.owner), 50, { fx: 'laser' });
+      await B.damage(u, B.hero(1 - u.owner), 50, { fx: 'laser' });
     } },
 
   /* ---------------- ワープ（マスを動かす） ---------------- */
@@ -2775,8 +2783,101 @@ const CARD_LIST = [
     onPlay: async (B, u) => { await B.cutin(u, 'ビートを刻め！ 止まるな！'); B.bumpCombo(u.owner, 3); },
     atkMod: (B, u) => (B.G.active === u.owner ? Math.min(80, B.G.combo * 10) : 0) },
 
+  /* ---------------- センチネル（迎撃の軸：速攻を止める） ---------------- */
+  { id: 'se_watch', name: '見張り番', emoji: '💂', tribe: 'sentinel', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 30, kw: ['intercept'], text: '' },
+  { id: 'se_barricade', name: 'バリケード', emoji: '🚧', tribe: 'sentinel', rarity: 'N', type: 'unit', cost: 2, atk: 0, hp: 50, kw: ['guard', 'thorns'], text: '' },
+  { id: 'se_sweep', name: '速攻封じ', emoji: '🧹', tribe: 'sentinel', rarity: 'R', type: 'spell', cost: 2, target: 'none',
+    text: 'コスト2以下の敵ユニット全員に30ダメージ', ai: { t: 'custom' },
+    cast: async (B, pi) => { const es = B.units(1 - pi).filter(u => u.def.cost <= 2); if (es.length) await B.damageMany(B.spellSrc(pi), es, 30, { fx: 'hit' }); } },
+  { id: 'se_captain', name: '防衛隊長', emoji: '🪖', tribe: 'sentinel', rarity: 'SR', type: 'unit', cost: 4, atk: 30, hp: 50, kw: ['intercept'],
+    text: '登場時：味方全員が迎撃を得る。自分のヒーローを（敵ユニットの数×15）回復',
+    onPlay: async (B, u) => { for (const a of B.units(u.owner)) B.giveKw(a, 'intercept'); const n = B.units(1 - u.owner).length; if (n) await B.heal(B.hero(u.owner), n * 15, u); } },
+  { id: 'se_aegis', name: '守護神アイギス', emoji: '🗿', tribe: 'sentinel', rarity: 'SSR', type: 'unit', cost: 5, atk: 30, hp: 70, kw: ['intercept'],
+    text: 'このユニットがいる限り、自分のヒーローが一度に受けるダメージは最大30', heroCap: 30,
+    onPlay: async (B, u) => { await B.cutin(u, 'この盾の前に、速さは無意味'); } },
+
+  /* ---------------- カース（呪いの軸：継続ダメージ） ---------------- */
+  { id: 'hx_doll', name: '呪いのわら人形', emoji: '🪆', tribe: 'hex', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 20,
+    text: '登場時：敵ヒーローに呪い1（相手のターン開始時、呪い1つにつき10ダメージ）', onPlay: async (B, u) => { await B.addCurse(1 - u.owner, 1); } },
+  { id: 'hx_wisp', name: '怨念の灯', emoji: '👻', tribe: 'hex', rarity: 'N', type: 'unit', cost: 3, atk: 20, hp: 30,
+    text: '自分のターン開始時：敵ヒーローに呪い1', onTurnStart: async (B, u) => { await B.addCurse(1 - u.owner, 1); } },
+  { id: 'hx_curse', name: '呪詛', emoji: '📿', tribe: 'hex', rarity: 'R', type: 'spell', cost: 2, target: 'none',
+    text: '敵ヒーローに呪い2', ai: { t: 'custom' }, cast: async (B, pi) => { await B.addCurse(1 - pi, 2); } },
+  { id: 'hx_reaper', name: '呪い喰らい', emoji: '🦇', tribe: 'hex', rarity: 'SR', type: 'unit', cost: 4, atk: 30, hp: 40,
+    text: '敵ヒーローの呪い1つにつきATK+10', atkMod: (B, u) => (B.P(1 - u.owner).curse || 0) * 10 },
+  { id: 'hx_witch', name: '大呪術師モルガナ', emoji: '🧙‍♀️', tribe: 'hex', rarity: 'SSR', type: 'unit', cost: 6, atk: 40, hp: 50,
+    text: '登場時：敵ヒーローの呪いを2倍にする（呪いがなければ呪い2）。敵ユニット全員に炎上1',
+    onPlay: async (B, u) => {
+      const E = B.P(1 - u.owner), c = E.curse || 0;
+      await B.cutin(u, c ? `呪いよ、${c * 2}倍に膨れよ` : '呪いの種をまこう');
+      await B.addCurse(1 - u.owner, c ? c : 2);
+      for (const e of B.units(1 - u.owner)) await B.burn(e, 1, u);
+    } },
+
+  /* ---------------- タイタン（巨大化の軸：ランプ→高コスト） ---------------- */
+  { id: 'ti_seed', name: '大地の種', emoji: '🌰', tribe: 'titan', rarity: 'N', type: 'spell', cost: 1, target: 'none',
+    text: '最大PP+1（次のターンから増える）。カードを1枚引く', ai: { t: 'custom' },
+    cast: async (B, pi) => { await B.rampPP(pi, 1); await B.draw(pi, 1); } },
+  { id: 'ti_golem', name: '鉱石ゴーレム', emoji: '🪨', tribe: 'titan', rarity: 'N', type: 'unit', cost: 3, atk: 20, hp: 50,
+    text: '登場時：最大PP+1', onPlay: async (B, u) => { await B.rampPP(u.owner, 1); } },
+  { id: 'ti_awaken', name: '巨人の目覚め', emoji: '⛰️', tribe: 'titan', rarity: 'R', type: 'spell', cost: 1, target: 'none',
+    text: 'このターン、手札のコスト6以上のカードのコスト-3。カードを1枚引く', ai: { t: 'custom' },
+    cast: async (B, pi) => { B.P(pi).bigDiscount = (B.P(pi).bigDiscount || 0) + 3; await B.draw(pi, 1); B.V('sync'); } },
+  { id: 'ti_wyrm', name: '山岳の古竜', emoji: '🐉', tribe: 'titan', rarity: 'SR', type: 'unit', cost: 8, atk: 80, hp: 80,
+    text: '登場時：敵ユニット全員に30ダメージ',
+    onPlay: async (B, u) => { await B.quake(); await B.damageMany(u, B.units(1 - u.owner), 30, { fx: 'quake' }); } },
+  { id: 'ti_titan', name: '原初の巨神タイタン', emoji: '🗽', tribe: 'titan', rarity: 'SSR', type: 'unit', cost: 10, atk: 120, hp: 120, kw: ['pierce'],
+    text: '登場時：敵ユニット全員を凍結',
+    onPlay: async (B, u) => { await B.cutin(u, '大地が…目を覚ます'); await B.quake(); for (const e of B.units(1 - u.owner)) await B.freeze(e); } },
+
+  /* ---------------- スウォーム（群れの軸：1枚から何体も並べる） ---------------- */
+  { id: 'sw_slime', name: '分裂スライム', emoji: '🟢', tribe: 'swarm', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 20,
+    text: '登場時：空きマスに「ちびスライム」（10/10）を1体出す', onPlay: async (B, u) => { await B.summonTokens(u.owner, 'tk_slime', 1, u.lane); } },
+  { id: 'sw_hive', name: 'ハチの巣', emoji: '🪺', tribe: 'swarm', rarity: 'N', type: 'unit', cost: 3, atk: 0, hp: 40,
+    text: '登場時：空きマスに「働きバチ」（20/10・飛行）を2体出す', onPlay: async (B, u) => { await B.summonTokens(u.owner, 'tk_bee', 2, u.lane); } },
+  { id: 'sw_call', name: '群れの号令', emoji: '📯', tribe: 'swarm', rarity: 'R', type: 'spell', cost: 3, target: 'none',
+    text: '空きマスすべてに「ちびスライム」（10/10）を出す', ai: { t: 'custom' },
+    cast: async (B, pi) => { await B.summonTokens(pi, 'tk_slime', 5); } },
+  { id: 'sw_queen', name: '女王アリ', emoji: '🐜', tribe: 'swarm', rarity: 'SR', type: 'unit', cost: 5, atk: 30, hp: 50,
+    text: '登場時と自分のターン開始時：空きマスに「兵隊アリ」（20/20）を1体出す',
+    onPlay: async (B, u) => { await B.summonTokens(u.owner, 'tk_ant', 1, u.lane); },
+    onTurnStart: async (B, u) => { await B.summonTokens(u.owner, 'tk_ant', 1, u.lane); } },
+  { id: 'sw_parade', name: '百鬼夜行', emoji: '🏮', tribe: 'swarm', rarity: 'SSR', type: 'unit', cost: 7, atk: 40, hp: 40,
+    text: '登場時：空きマスすべてに、ランダムなコスト2〜4のユニットを出す',
+    onPlay: async (B, u) => {
+      await B.cutin(u, '夜を埋め尽くせ！');
+      const pool = COLLECTIBLE.filter(c => c.type === 'unit' && c.cost >= 2 && c.cost <= 4 && c.rarity !== 'UR');
+      for (const l of B.emptyLanes(u.owner)) await B.summon(u.owner, R.pick(pool).id, l);
+    } },
+
+  /* ---------------- トイ（トークンの軸：トークンで強くなる） ---------------- */
+  { id: 'ty_balloon', name: 'びっくりバルーン', emoji: '🎈', tribe: 'toy', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 10,
+    text: '破壊時：空きマスに「風船」（10/10・飛行）を2体出す', onDeath: async (B, u) => { await B.summonTokens(u.owner, 'tk_balloon', 2, u.lane); } },
+  { id: 'ty_box', name: 'おもちゃ箱', emoji: '🎁', tribe: 'toy', rarity: 'N', type: 'spell', cost: 2, target: 'none',
+    text: '空きマスに「ブリキ兵」（20/20）を2体出す', ai: { t: 'custom' },
+    cast: async (B, pi) => { await B.summonTokens(pi, 'tk_tin', 2); } },
+  { id: 'ty_general', name: 'ブリキの将軍', emoji: '💂‍♂️', tribe: 'toy', rarity: 'R', type: 'unit', cost: 3, atk: 20, hp: 30,
+    text: '登場時：味方のトークン全員に+20/+10', onPlay: async (B, u) => { const ts = B.units(u.owner).filter(a => a.token); for (const t of ts) await B.buff(t, 20, 10, { quick: true }); } },
+  { id: 'ty_leader', name: 'パレードの団長', emoji: '🎺', tribe: 'toy', rarity: 'SR', type: 'unit', cost: 4, atk: 30, hp: 40,
+    text: '味方のトークンが出るたび、そのトークンに+10/+10、敵ヒーローに10ダメージ',
+    onAllySummon: async (B, a, u) => { if (!u.token) return; await B.buff(u, 10, 10, { quick: true }); await B.damage(a, B.hero(1 - a.owner), 10, { fx: 'gold' }); } },
+  { id: 'ty_king', name: 'おもちゃの王様', emoji: '🤴', tribe: 'toy', rarity: 'SSR', type: 'unit', cost: 6, atk: 30, hp: 30,
+    text: '登場時：味方のトークンをすべて吸収し、そのATKとHPの合計を得る',
+    onPlay: async (B, u) => {
+      const ts = B.units(u.owner).filter(a => a.token && a !== u);
+      await B.cutin(u, ts.length ? `${ts.length}体のおもちゃよ、ひとつになれ！` : 'おもちゃがいない…');
+      let a = 0, h = 0;
+      for (const t of ts) { a += t.atk; h += t.hp; }
+      if (ts.length) { await B.annihilate({ owner: u.owner }, ts); await B.buff(u, a, h); }
+    } },
+
   /* ---------------- トークン（入手不可） ---------------- */
   { id: 'tk_bone', name: 'ホネホネ', emoji: '🦴', tribe: 'necro', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 10, token: true, text: 'カタカタ。', flavor: true },
+  { id: 'tk_slime', name: 'ちびスライム', emoji: '🫧', tribe: 'swarm', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 10, token: true, text: 'ぷるぷる。', flavor: true },
+  { id: 'tk_bee', name: '働きバチ', emoji: '🐝', tribe: 'swarm', rarity: 'N', type: 'unit', cost: 1, atk: 20, hp: 10, kw: ['fly'], token: true, text: '' },
+  { id: 'tk_ant', name: '兵隊アリ', emoji: '🐜', tribe: 'swarm', rarity: 'N', type: 'unit', cost: 1, atk: 20, hp: 20, token: true, text: 'ザッザッ。', flavor: true },
+  { id: 'tk_tin', name: 'ブリキ兵', emoji: '🤖', tribe: 'toy', rarity: 'N', type: 'unit', cost: 1, atk: 20, hp: 20, token: true, text: 'ギーコギーコ。', flavor: true },
+  { id: 'tk_balloon', name: '風船', emoji: '🎈', tribe: 'toy', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 10, kw: ['fly'], token: true, text: '' },
   { id: 'tk_chick', name: 'ぴよぴよ', emoji: '🐣', tribe: 'mimic', rarity: 'N', type: 'unit', cost: 1, atk: 10, hp: 10, token: true, text: '変身させられてしまった…', flavor: true },
 ];
 
@@ -2801,7 +2902,7 @@ function typeLabel(def) {
 'use strict';
 /* ===== カードの見た目 ===== */
 
-const KW_ORDER = ['guard', 'armor', 'shield', 'double', 'pierce', 'fly', 'chain', 'thorns', 'drain', 'lucky', 'regen', 'undying', 'poison', 'burnhit', 'freezehit', 'warp'];
+const KW_ORDER = ['intercept', 'guard', 'armor', 'shield', 'double', 'pierce', 'fly', 'chain', 'thorns', 'drain', 'lucky', 'regen', 'undying', 'poison', 'burnhit', 'freezehit', 'warp'];
 
 // 手札・ギャラリー用のカード
 function cardEl(def, o = {}) {
@@ -3066,7 +3167,27 @@ const B = {
     if (f && f.def.fieldCritMult) return f.def.fieldCritMult(this, u, f.owner);
     return 2;
   },
-  costOf(pi, def) { return Math.max(0, def.cost - (def.costMod ? def.costMod(this, pi) : 0)); },
+  costOf(pi, def) {
+    let c = def.cost - (def.costMod ? def.costMod(this, pi) : 0);
+    const P = this.G && this.G.P[pi];
+    if (P && P.bigDiscount && def.cost >= 6) c -= P.bigDiscount; // 巨大化の軸：このターン、コスト6以上が安くなる
+    return Math.max(0, c);
+  },
+  // 巨大化の軸：最大PPを増やす（上限10）
+  async rampPP(pi, n) {
+    const P = this.G.P[pi];
+    const before = P.maxEnergy;
+    P.maxEnergy = Math.min(10, P.maxEnergy + n);
+    await this.V('ramp', pi, P.maxEnergy - before);
+  },
+  // 呪いの軸：ヒーローに呪いを積む（毎ターン開始時に10×呪いダメージ。減らない。最大6）
+  async addCurse(pi, n) {
+    const P = this.G.P[pi];
+    const before = P.curse || 0;
+    P.curse = Math.min(this.CURSE_MAX, before + n);
+    if (P.curse !== before) await this.V('curse', pi, P.curse - before);
+  },
+  CURSE_MAX: 6,
   // 鉄壁の軸：アーマーと守りの陣で、受けるダメージを減らす
   reduceOf(u) {
     let r = this.hasKw(u, 'armor') ? 10 : 0;
@@ -3163,6 +3284,8 @@ const B = {
       if (opts.fx && !opts.attack) await this.V('projectile', src, target, opts);
       if (amt <= 0) { await this.V('damage', target, 0, opts); return 0; }
       const P = G.P[target.owner];
+      const cap = this.units(target.owner).reduce((m, u) => (u.def.heroCap ? Math.min(m, u.def.heroCap) : m), Infinity);
+      if (amt > cap) { amt = cap; opts = Object.assign({}, opts, { capped: true }); }
       P.hp -= amt;
       this._countDamage(so, target.owner, amt);
       if (so != null && so !== target.owner) { G.stats[so].heroDamage += amt; this.addFever(so, amt / 10); }
@@ -3279,6 +3402,14 @@ const B = {
       await this.V('trapFx', u);
       await this.damage({ owner: 1 - pi, trap: true }, u, 30, { trap: true });
     }
+    // 迎撃：正面に敵が出てきたら、その場で20ダメージ
+    const opp = this.G.P[1 - pi].board[lane];
+    if (this.alive(u) && this.alive(opp) && this.hasKw(opp, 'intercept')) {
+      await this.V('interceptFx', opp, u);
+      await this.damage(opp, u, 20, { fx: 'bolt' });
+    }
+    // トークンの軸：味方が出るたびに反応するユニット
+    if (this.alive(u)) for (const a of this.units(pi)) if (a !== u && a.def.onAllySummon) await a.def.onAllySummon(this, a, u);
     return u;
   },
   _mkUnit(pi, id, lane) {
@@ -3440,6 +3571,18 @@ const B = {
     P.hp -= v;
     await this.V('payHp', pi, v);
     return v;
+  },
+
+  // 空きマスにユニットを並べる（near に近いマスから）
+  async summonTokens(pi, id, n, near = 2) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const l = this.freeLane(pi, near, false);
+      if (l == null) break;
+      const u = await this.summon(pi, id, l, { token: true });
+      if (u) out.push(u);
+    }
+    return out;
   },
 
   /* ---------- ボスが使う特殊な効果 ---------- */
@@ -3606,6 +3749,7 @@ const B = {
     P.maxEnergy = Math.min(10, P.maxEnergy + 1);
     P.energy = Math.max(0, P.maxEnergy + P.energyBonus + (P.nextEnergy || 0));
     P.nextEnergy = 0;
+    P.bigDiscount = 0;
     await this.V('turnStart', pi, G.round);
     if (G.round >= 16 && pi === 0) {
       const d = (G.round - 15) * 10;
@@ -3614,6 +3758,10 @@ const B = {
       await this.damage(null, this.hero(1), d, { fx: null });
     }
     await this.draw(pi, 1);
+    if (P.curse > 0) {
+      await this.V('curseTick', pi, P.curse);
+      await this.damage({ owner: 1 - pi, curse: true }, this.hero(pi), P.curse * 10, { curse: true });
+    }
     for (const u of this.units(pi)) {
       if (u.burn > 0) {
         const d = 10 * u.burn; u.burn--;
@@ -4032,6 +4180,8 @@ const AI = {
     const next = B.predictAttacks(pi);
     s += next.face >= op.hp ? W.lethal : next.face * W.face; // 次のターンのとどめの圧
     if (G.field) s += G.field.owner === pi ? W.field : -W.field;
+    s += ((op.curse || 0) - (me.curse || 0)) * 28; // 呪いは毎ターン10ずつ効き続ける
+    s += (me.maxEnergy - op.maxEnergy) * 6;
     return s;
   },
   worth(B, u) {
@@ -4042,7 +4192,9 @@ const AI = {
     if (u.shield) v += 20;
     if (B.hasKw(u, 'guard')) v += 15;
     if (B.hasKw(u, 'armor')) v += 12;
-    if (u.def.onAnyHeal || u.def.onAllySpell || u.def.onAllyCard || u.def.onHurt) v += 15;
+    if (u.def.onAnyHeal || u.def.onAllySpell || u.def.onAllyCard || u.def.onHurt || u.def.onAllySummon) v += 15;
+    if (B.hasKw(u, 'intercept')) v += 10;
+    if (u.def.heroCap) v += 40;
     if (u.kw.has('undying') && !u.revived) v += 25;
     if (u.def.onTurnStart || u.def.onPreAttack) v += 25;
     if (u.count > 0 && u.def.onCountdown) v += 40 + 40 / u.count; // 倒されても発動するので確実な価値
@@ -4270,6 +4422,12 @@ const AI = {
         if (!tu || tu.shield) return 0.2;
         return d >= tu.hp ? this.uval(B, tu) * 1.3 : d / 10 * 0.4;
       }
+      case 'se_sweep': { const es = B.units(1 - pi).filter(u => u.def.cost <= 2); return es.reduce((a, u) => a + (u.shield ? 0.3 : u.hp <= 30 ? this.uval(B, u) * 1.1 : 1), 0) - 0.5; }
+      case 'hx_curse': return 3.5 - (E.curse || 0) * 0.4;
+      case 'ti_seed': return P.maxEnergy < 9 ? 3 : 0.5;
+      case 'ti_awaken': return P.hand.some(c => CARDS[c.id].cost >= 6 && CARDS[c.id].cost - 3 <= P.energy - 1) ? 5 : 0.2;
+      case 'sw_call': return B.emptyLanes(pi).length * 1.1;
+      case 'ty_box': return Math.min(2, B.emptyLanes(pi).length) * 1.6;
       case 'h_rain': return B.units(pi).reduce((a, u) => a + Math.min(30, u.maxHp - u.hp), 0) / 10 * 0.6 + Math.min(30, P.maxHp - P.hp) / 10 * 0.5;
       case 'f_wall': return B.units(pi).length * 1.1;
       case 'g_ward': return B.units(pi).length * 0.8 + 0.5;
@@ -5361,7 +5519,7 @@ const BUI = {
       <div class="battle-stage">
         <header class="b-top">
           <div class="hero hero-e" data-p="1">
-            <div class="hero-ava" data-p="1"><span></span><div class="reach">リーチ!</div></div>
+            <div class="hero-ava" data-p="1"><span></span><div class="reach">リーチ!</div><div class="curse-badge" hidden></div></div>
             <div class="hero-body">
               <div class="boss-title" hidden></div>
               <div class="hero-name"></div>
@@ -5396,7 +5554,7 @@ const BUI = {
         </div>
         <footer class="b-bottom">
           <div class="hero hero-p" data-p="0">
-            <div class="hero-ava" data-p="0"><span></span></div>
+            <div class="hero-ava" data-p="0"><span></span><div class="curse-badge" hidden></div></div>
             <div class="hero-body">
               <div class="hpbar"><i class="hp-ghost"></i><i class="hp-fill"></i><span class="hp-num"></span></div>
               <div class="energy"><div class="orbs"></div><span class="en-num"></span></div>
@@ -5670,6 +5828,8 @@ const BUI = {
       $('.hp-ghost', h).style.width = pct + '%';
       $('.hp-num', h).textContent = `${Math.max(0, P.hp)} / ${P.maxHp}`;
       h.classList.toggle('danger', P.hp <= P.maxHp * 0.25);
+      const cb = $('.curse-badge', h);
+      if (cb) { const c = P.curse || 0; cb.hidden = !c; const t = `🕯️${c}`; if (cb.textContent !== t) cb.textContent = t; cb.title = `呪い${c}：ターン開始時に${c * 10}ダメージ`; }
       h.classList.toggle('active', G.active === p && !G.over);
       // ユニット
       P.board.forEach((u, lane) => {
@@ -6481,6 +6641,7 @@ const View = {
     if (opts.pierced) BUI.tip('pierce', '💥 <b>貫通</b>：敵を倒して余ったダメージがヒーローに届く');
     if (opts.thorns) BUI.tip('thorns', '🌵 <b>トゲ</b>：攻撃してきた相手に20ダメージを返す');
     if (opts.chain) BUI.tip('chain', '⛓️ <b>連鎖</b>：攻撃した相手の両隣にも半分のダメージ');
+    if (opts.capped) { FX.popText(p.x, p.y - 40, '🗿上限30', 'pop-label', { dur: 800 }); BUI.tip('heroCap', '🗿 <b>守護神アイギス</b>：いる限り、ヒーローが一度に受けるダメージは最大30'); }
     if (opts.armored) { FX.popText(p.x, p.y - 34, '🪖軽減', 'pop-label', { dur: 700 }); BUI.tip('armor', '🪖 <b>アーマー／守りの陣</b>：受けるダメージが10減る。小さい攻撃はほとんど効かない！'); }
     if (amt <= 0) {
       FX.popText(p.x, p.y, opts.label || (opts.armored ? 'GUARD' : 'MISS'), 'pop-miss');
@@ -6932,6 +7093,42 @@ const View = {
     Sound.play('dark');
     return wait(120);
   },
+  // ---- 迎撃・呪い・巨大化 ----
+  async interceptFx(g, u) {
+    const p = BUI.posOf(g);
+    BUI.tip('intercept', '🎯 <b>迎撃</b>：正面のマスに敵ユニットが出てくると、その場で20ダメージを撃ち込む');
+    FX.popText(p.x, p.y - 30, '迎撃!', 'pop-label', { size: 20 });
+    BUI.log('🎯', `${esc(g.def.name)}が${esc(u.def.name)}を迎撃！`);
+    return wait(100);
+  },
+  async curse(pi, n) {
+    BUI.sync();
+    const p = centerOf(BUI.heroEl(pi));
+    Sound.play('dark');
+    FX.popText(p.x, p.y - 30, `呪い+${n}`, 'pop-dark', { size: 22 });
+    FX.burst(p.x, p.y, { count: 18, colors: ['#e05be0', '#3a0a3c', '#fff'], speed: 4, gravity: -0.1 });
+    BUI.log('🕯️', `${pi === 0 ? 'あなた' : '相手'}に呪い+${n}（合計${B.P(pi).curse}）`);
+    BUI.tip('curse', '🕯️ <b>呪い</b>：呪われたヒーローは、自分のターン開始時に（10×呪い）ダメージを受ける。時間では減らない！');
+    return wait(150);
+  },
+  async curseTick(pi, n) {
+    const p = centerOf(BUI.heroEl(pi));
+    FX.popText(p.x, p.y - 40, `🕯️呪い×${n}`, 'pop-dark', { size: 20 });
+    FX.burst(p.x, p.y, { count: 14 + n * 4, colors: ['#e05be0', '#ffffff'], speed: 5 });
+    Sound.play('dark');
+    return wait(200);
+  },
+  async ramp(pi, n) {
+    BUI.sync();
+    if (!n) return;
+    const el2 = pi === 0 ? $('.energy', BUI.root) : BUI.heroEl(1);
+    const p = centerOf(el2);
+    FX.popText(p.x, p.y - 24, `最大PP+${n}`, 'pop-energy', { size: 22 });
+    Sound.play('energy');
+    BUI.log('🗻', `${pi === 0 ? 'あなた' : '相手'}の最大PPが${B.P(pi).maxEnergy}に`);
+    return wait(150);
+  },
+
   // ---- 新しい軸の演出 ----
   async tile(pi, lane, kind) {
     const slot = BUI.slotEl(pi, lane);
@@ -7398,7 +7595,7 @@ const UI = {
         <section><h3>🗺 フィールド</h3><p>フィールドカードを出すと、場全体のルールが変わる。新しいフィールドを出すと上書き。</p></section>
         <section><h3>🎰 リーチ</h3><p>アタックすれば倒せそうな時、相手ヒーローに「リーチ!」が光る。</p></section>
         <section><h3>🔰 バトル中のサポート</h3><p><b>⚔数字</b>：ユニットの下に、アタックした時の予想ダメージ（「撃破!」「直撃」も表示）。HPバーの斑点は受けそうなダメージ。<br><b>💡ヒント</b>：ドパ美がおすすめの1手と理由を教えてくれる（迷って止まると自動でも出る）。<br><b>📜ログ</b>：何が起きたかを文章で確認できる。<br>初めて起きたことは、上に<b>ルール解説</b>が出る。</p></section>
-        <section><h3>🧭 未知なる軸（新属性）</h3><div class="kw-list">${TRIBE_ORDER.filter(t => TRIBES[t].axis).map(t => `<div><b>${TRIBES[t].icon}${TRIBES[t].name}</b>${TRIBES[t].desc}</div>`).join('')}<div><b>⏳カウント</b>${STATUS_INFO.count.replace('カウント：', '')}</div><div><b>⚡アタック前</b>${STATUS_INFO.preAttack.replace('アタック前：', '')}</div><div><b>♥HPコスト</b>${STATUS_INFO.hpCost.replace('HPコスト：', '')}</div><div><b>🗺️陣</b>${STATUS_INFO.tile.replace('陣：', '')}</div></div></section>
+        <section><h3>🧭 未知なる軸（新属性）</h3><div class="kw-list">${TRIBE_ORDER.filter(t => TRIBES[t].axis).map(t => `<div><b>${TRIBES[t].icon}${TRIBES[t].name}</b>${TRIBES[t].desc}</div>`).join('')}<div><b>⏳カウント</b>${STATUS_INFO.count.replace('カウント：', '')}</div><div><b>⚡アタック前</b>${STATUS_INFO.preAttack.replace('アタック前：', '')}</div><div><b>♥HPコスト</b>${STATUS_INFO.hpCost.replace('HPコスト：', '')}</div><div><b>🗺️陣</b>${STATUS_INFO.tile.replace('陣：', '')}</div><div><b>🕯️呪い</b>${STATUS_INFO.curse.replace('呪い：', '')}</div></div></section>
         <section><h3>📚 キーワード</h3><div class="kw-list">${Object.values(KW).map(k => `<div><b>${k.icon}${k.name}</b>${k.desc}</div>`).join('')}<div><b>🔥炎上</b>${STATUS_INFO.burn.replace('炎上：', '')}</div><div><b>❄️凍結</b>${STATUS_INFO.frozen.replace('凍結：', '')}</div></div></section>
       </div>
       <button class="btn" type="button" data-close>OK！</button>`, { cls: 'wide' }).querySelector('[data-close]').addEventListener('click', () => Modal.close());

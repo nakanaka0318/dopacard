@@ -115,7 +115,27 @@ const B = {
     if (f && f.def.fieldCritMult) return f.def.fieldCritMult(this, u, f.owner);
     return 2;
   },
-  costOf(pi, def) { return Math.max(0, def.cost - (def.costMod ? def.costMod(this, pi) : 0)); },
+  costOf(pi, def) {
+    let c = def.cost - (def.costMod ? def.costMod(this, pi) : 0);
+    const P = this.G && this.G.P[pi];
+    if (P && P.bigDiscount && def.cost >= 6) c -= P.bigDiscount; // 巨大化の軸：このターン、コスト6以上が安くなる
+    return Math.max(0, c);
+  },
+  // 巨大化の軸：最大PPを増やす（上限10）
+  async rampPP(pi, n) {
+    const P = this.G.P[pi];
+    const before = P.maxEnergy;
+    P.maxEnergy = Math.min(10, P.maxEnergy + n);
+    await this.V('ramp', pi, P.maxEnergy - before);
+  },
+  // 呪いの軸：ヒーローに呪いを積む（毎ターン開始時に10×呪いダメージ。減らない。最大6）
+  async addCurse(pi, n) {
+    const P = this.G.P[pi];
+    const before = P.curse || 0;
+    P.curse = Math.min(this.CURSE_MAX, before + n);
+    if (P.curse !== before) await this.V('curse', pi, P.curse - before);
+  },
+  CURSE_MAX: 6,
   // 鉄壁の軸：アーマーと守りの陣で、受けるダメージを減らす
   reduceOf(u) {
     let r = this.hasKw(u, 'armor') ? 10 : 0;
@@ -212,6 +232,8 @@ const B = {
       if (opts.fx && !opts.attack) await this.V('projectile', src, target, opts);
       if (amt <= 0) { await this.V('damage', target, 0, opts); return 0; }
       const P = G.P[target.owner];
+      const cap = this.units(target.owner).reduce((m, u) => (u.def.heroCap ? Math.min(m, u.def.heroCap) : m), Infinity);
+      if (amt > cap) { amt = cap; opts = Object.assign({}, opts, { capped: true }); }
       P.hp -= amt;
       this._countDamage(so, target.owner, amt);
       if (so != null && so !== target.owner) { G.stats[so].heroDamage += amt; this.addFever(so, amt / 10); }
@@ -328,6 +350,14 @@ const B = {
       await this.V('trapFx', u);
       await this.damage({ owner: 1 - pi, trap: true }, u, 30, { trap: true });
     }
+    // 迎撃：正面に敵が出てきたら、その場で20ダメージ
+    const opp = this.G.P[1 - pi].board[lane];
+    if (this.alive(u) && this.alive(opp) && this.hasKw(opp, 'intercept')) {
+      await this.V('interceptFx', opp, u);
+      await this.damage(opp, u, 20, { fx: 'bolt' });
+    }
+    // トークンの軸：味方が出るたびに反応するユニット
+    if (this.alive(u)) for (const a of this.units(pi)) if (a !== u && a.def.onAllySummon) await a.def.onAllySummon(this, a, u);
     return u;
   },
   _mkUnit(pi, id, lane) {
@@ -489,6 +519,18 @@ const B = {
     P.hp -= v;
     await this.V('payHp', pi, v);
     return v;
+  },
+
+  // 空きマスにユニットを並べる（near に近いマスから）
+  async summonTokens(pi, id, n, near = 2) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const l = this.freeLane(pi, near, false);
+      if (l == null) break;
+      const u = await this.summon(pi, id, l, { token: true });
+      if (u) out.push(u);
+    }
+    return out;
   },
 
   /* ---------- ボスが使う特殊な効果 ---------- */
@@ -655,6 +697,7 @@ const B = {
     P.maxEnergy = Math.min(10, P.maxEnergy + 1);
     P.energy = Math.max(0, P.maxEnergy + P.energyBonus + (P.nextEnergy || 0));
     P.nextEnergy = 0;
+    P.bigDiscount = 0;
     await this.V('turnStart', pi, G.round);
     if (G.round >= 16 && pi === 0) {
       const d = (G.round - 15) * 10;
@@ -663,6 +706,10 @@ const B = {
       await this.damage(null, this.hero(1), d, { fx: null });
     }
     await this.draw(pi, 1);
+    if (P.curse > 0) {
+      await this.V('curseTick', pi, P.curse);
+      await this.damage({ owner: 1 - pi, curse: true }, this.hero(pi), P.curse * 10, { curse: true });
+    }
     for (const u of this.units(pi)) {
       if (u.burn > 0) {
         const d = 10 * u.burn; u.burn--;

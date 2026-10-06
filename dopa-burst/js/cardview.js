@@ -1,7 +1,7 @@
 'use strict';
 /* ===== カードの見た目 ===== */
 
-const KW_ORDER = ['guard', 'armor', 'shield', 'double', 'pierce', 'fly', 'chain', 'thorns', 'drain', 'lucky', 'regen', 'undying', 'poison', 'burnhit', 'freezehit', 'warp'];
+const KW_ORDER = ['intercept', 'guard', 'armor', 'shield', 'double', 'pierce', 'fly', 'chain', 'thorns', 'drain', 'lucky', 'regen', 'undying', 'poison', 'burnhit', 'freezehit', 'warp'];
 
 // 手札・ギャラリー用のカード
 function cardEl(def, o = {}) {

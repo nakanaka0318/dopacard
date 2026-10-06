@@ -139,6 +139,8 @@ const AI = {
     const next = B.predictAttacks(pi);
     s += next.face >= op.hp ? W.lethal : next.face * W.face; // 次のターンのとどめの圧
     if (G.field) s += G.field.owner === pi ? W.field : -W.field;
+    s += ((op.curse || 0) - (me.curse || 0)) * 28; // 呪いは毎ターン10ずつ効き続ける
+    s += (me.maxEnergy - op.maxEnergy) * 6;
     return s;
   },
   worth(B, u) {
@@ -149,7 +151,9 @@ const AI = {
     if (u.shield) v += 20;
     if (B.hasKw(u, 'guard')) v += 15;
     if (B.hasKw(u, 'armor')) v += 12;
-    if (u.def.onAnyHeal || u.def.onAllySpell || u.def.onAllyCard || u.def.onHurt) v += 15;
+    if (u.def.onAnyHeal || u.def.onAllySpell || u.def.onAllyCard || u.def.onHurt || u.def.onAllySummon) v += 15;
+    if (B.hasKw(u, 'intercept')) v += 10;
+    if (u.def.heroCap) v += 40;
     if (u.kw.has('undying') && !u.revived) v += 25;
     if (u.def.onTurnStart || u.def.onPreAttack) v += 25;
     if (u.count > 0 && u.def.onCountdown) v += 40 + 40 / u.count; // 倒されても発動するので確実な価値
@@ -377,6 +381,12 @@ const AI = {
         if (!tu || tu.shield) return 0.2;
         return d >= tu.hp ? this.uval(B, tu) * 1.3 : d / 10 * 0.4;
       }
+      case 'se_sweep': { const es = B.units(1 - pi).filter(u => u.def.cost <= 2); return es.reduce((a, u) => a + (u.shield ? 0.3 : u.hp <= 30 ? this.uval(B, u) * 1.1 : 1), 0) - 0.5; }
+      case 'hx_curse': return 3.5 - (E.curse || 0) * 0.4;
+      case 'ti_seed': return P.maxEnergy < 9 ? 3 : 0.5;
+      case 'ti_awaken': return P.hand.some(c => CARDS[c.id].cost >= 6 && CARDS[c.id].cost - 3 <= P.energy - 1) ? 5 : 0.2;
+      case 'sw_call': return B.emptyLanes(pi).length * 1.1;
+      case 'ty_box': return Math.min(2, B.emptyLanes(pi).length) * 1.6;
       case 'h_rain': return B.units(pi).reduce((a, u) => a + Math.min(30, u.maxHp - u.hp), 0) / 10 * 0.6 + Math.min(30, P.maxHp - P.hp) / 10 * 0.5;
       case 'f_wall': return B.units(pi).length * 1.1;
       case 'g_ward': return B.units(pi).length * 0.8 + 0.5;

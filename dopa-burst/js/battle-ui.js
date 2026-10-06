@@ -27,7 +27,7 @@ const BUI = {
       <div class="battle-stage">
         <header class="b-top">
           <div class="hero hero-e" data-p="1">
-            <div class="hero-ava" data-p="1"><span></span><div class="reach">リーチ!</div></div>
+            <div class="hero-ava" data-p="1"><span></span><div class="reach">リーチ!</div><div class="curse-badge" hidden></div></div>
             <div class="hero-body">
               <div class="boss-title" hidden></div>
               <div class="hero-name"></div>
@@ -62,7 +62,7 @@ const BUI = {
         </div>
         <footer class="b-bottom">
           <div class="hero hero-p" data-p="0">
-            <div class="hero-ava" data-p="0"><span></span></div>
+            <div class="hero-ava" data-p="0"><span></span><div class="curse-badge" hidden></div></div>
             <div class="hero-body">
               <div class="hpbar"><i class="hp-ghost"></i><i class="hp-fill"></i><span class="hp-num"></span></div>
               <div class="energy"><div class="orbs"></div><span class="en-num"></span></div>
@@ -336,6 +336,8 @@ const BUI = {
       $('.hp-ghost', h).style.width = pct + '%';
       $('.hp-num', h).textContent = `${Math.max(0, P.hp)} / ${P.maxHp}`;
       h.classList.toggle('danger', P.hp <= P.maxHp * 0.25);
+      const cb = $('.curse-badge', h);
+      if (cb) { const c = P.curse || 0; cb.hidden = !c; const t = `🕯️${c}`; if (cb.textContent !== t) cb.textContent = t; cb.title = `呪い${c}：ターン開始時に${c * 10}ダメージ`; }
       h.classList.toggle('active', G.active === p && !G.over);
       // ユニット
       P.board.forEach((u, lane) => {
@@ -1147,6 +1149,7 @@ const View = {
     if (opts.pierced) BUI.tip('pierce', '💥 <b>貫通</b>：敵を倒して余ったダメージがヒーローに届く');
     if (opts.thorns) BUI.tip('thorns', '🌵 <b>トゲ</b>：攻撃してきた相手に20ダメージを返す');
     if (opts.chain) BUI.tip('chain', '⛓️ <b>連鎖</b>：攻撃した相手の両隣にも半分のダメージ');
+    if (opts.capped) { FX.popText(p.x, p.y - 40, '🗿上限30', 'pop-label', { dur: 800 }); BUI.tip('heroCap', '🗿 <b>守護神アイギス</b>：いる限り、ヒーローが一度に受けるダメージは最大30'); }
     if (opts.armored) { FX.popText(p.x, p.y - 34, '🪖軽減', 'pop-label', { dur: 700 }); BUI.tip('armor', '🪖 <b>アーマー／守りの陣</b>：受けるダメージが10減る。小さい攻撃はほとんど効かない！'); }
     if (amt <= 0) {
       FX.popText(p.x, p.y, opts.label || (opts.armored ? 'GUARD' : 'MISS'), 'pop-miss');
@@ -1598,6 +1601,42 @@ const View = {
     Sound.play('dark');
     return wait(120);
   },
+  // ---- 迎撃・呪い・巨大化 ----
+  async interceptFx(g, u) {
+    const p = BUI.posOf(g);
+    BUI.tip('intercept', '🎯 <b>迎撃</b>：正面のマスに敵ユニットが出てくると、その場で20ダメージを撃ち込む');
+    FX.popText(p.x, p.y - 30, '迎撃!', 'pop-label', { size: 20 });
+    BUI.log('🎯', `${esc(g.def.name)}が${esc(u.def.name)}を迎撃！`);
+    return wait(100);
+  },
+  async curse(pi, n) {
+    BUI.sync();
+    const p = centerOf(BUI.heroEl(pi));
+    Sound.play('dark');
+    FX.popText(p.x, p.y - 30, `呪い+${n}`, 'pop-dark', { size: 22 });
+    FX.burst(p.x, p.y, { count: 18, colors: ['#e05be0', '#3a0a3c', '#fff'], speed: 4, gravity: -0.1 });
+    BUI.log('🕯️', `${pi === 0 ? 'あなた' : '相手'}に呪い+${n}（合計${B.P(pi).curse}）`);
+    BUI.tip('curse', '🕯️ <b>呪い</b>：呪われたヒーローは、自分のターン開始時に（10×呪い）ダメージを受ける。時間では減らない！');
+    return wait(150);
+  },
+  async curseTick(pi, n) {
+    const p = centerOf(BUI.heroEl(pi));
+    FX.popText(p.x, p.y - 40, `🕯️呪い×${n}`, 'pop-dark', { size: 20 });
+    FX.burst(p.x, p.y, { count: 14 + n * 4, colors: ['#e05be0', '#ffffff'], speed: 5 });
+    Sound.play('dark');
+    return wait(200);
+  },
+  async ramp(pi, n) {
+    BUI.sync();
+    if (!n) return;
+    const el2 = pi === 0 ? $('.energy', BUI.root) : BUI.heroEl(1);
+    const p = centerOf(el2);
+    FX.popText(p.x, p.y - 24, `最大PP+${n}`, 'pop-energy', { size: 22 });
+    Sound.play('energy');
+    BUI.log('🗻', `${pi === 0 ? 'あなた' : '相手'}の最大PPが${B.P(pi).maxEnergy}に`);
+    return wait(150);
+  },
+
   // ---- 新しい軸の演出 ----
   async tile(pi, lane, kind) {
     const slot = BUI.slotEl(pi, lane);
