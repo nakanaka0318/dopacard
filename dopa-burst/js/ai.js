@@ -144,7 +144,7 @@ const AI = {
   worth(B, u) {
     const a = B.atkOf(u);
     let v = a + u.hp * 0.7 + 10;
-    if (B.hasKw(u, 'double')) v += a * 0.8;
+    if (B.hasKw(u, 'double')) v += a * 1.3; // 連撃：1回目で倒すと2回目はヒーローへ。ほぼATK2倍の価値
     if (B.hasKw(u, 'fly')) v += 15;
     if (u.shield) v += 20;
     if (B.hasKw(u, 'guard')) v += 15;
@@ -219,7 +219,7 @@ const AI = {
 
   uval(B, u) {
     let v = (B.atkOf(u) + u.hp) / 10;
-    if (u.kw.has('double')) v += B.atkOf(u) / 10;
+    if (B.hasKw(u, 'double')) v += B.atkOf(u) / 10 * 1.3;
     if (u.kw.has('fly')) v += 1;
     if (u.def.onTurnStart || u.def.onPreAttack) v += 2;
     if (u.shield) v += 1;
@@ -287,7 +287,7 @@ const AI = {
         const shield = o.shield;
         if (atk >= o.hp && !shield) s += this.uval(B, o) * 1.2;
         else s += Math.min(atk, o.hp) / 10 * 0.4;
-        s += B.atkOf(o) / 10 * 0.8;
+        s += B.atkOf(o) / 10 * 0.8 * (B.hasKw(o, 'double') ? 2 : 1);
         if (B.atkOf(o) >= def.hp && !def.kw.includes('shield')) s -= (def.atk + def.hp) / 10 * 0.45;
       }
       // 自分の盤面がスカスカなら展開を優先
@@ -327,7 +327,7 @@ const AI = {
         if (!tu) return -1;
         s = (ai.a + ai.h) / 10 * 0.7;
         if (!B.oppositeOf(tu) || tu.kw.has('fly')) s += ai.a / 10 * 0.6;
-        if (tu.kw.has('double')) s += ai.a / 10 * 0.5;
+        if (B.hasKw(tu, 'double')) s += ai.a / 10 * 1.2;
         return s;
       }
       case 'buffAll': return B.units(pi).length * (ai.a + ai.h) / 10 * 0.6;
@@ -338,7 +338,7 @@ const AI = {
       }
       case 'kw': {
         if (!tu || tu.kw.has(ai.kw)) return -1;
-        return B.atkOf(tu) / 10 * 1.2;
+        return B.atkOf(tu) / 10 * (ai.kw === 'double' ? 2.2 : 1.2);
       }
     }
     switch (def.id) {

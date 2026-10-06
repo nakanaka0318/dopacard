@@ -1337,6 +1337,53 @@ body.reduced .battle-stage.fever-on .board, body.reduced .combo[data-lv="4"], bo
 .hcard.cost-down .card-cost b { color: #0d5a00; }
 .slot[data-p="0"] .slot-tile { bottom: auto; top: -8px; }
 
+/* ---- ガチャの便利機能 ---- */
+.g-free { display: flex; align-items: center; gap: 10px; width: 100%; margin: 4px 0 12px; padding: 12px 14px; border-radius: 18px; text-align: left;
+  background: linear-gradient(180deg, #2a6a2a, #164016); box-shadow: 0 5px 0 #0a2a0a, inset 0 0 0 3px var(--lime), 0 0 22px rgba(141, 255, 79, .35); animation: badgeBob 1.2s ease-in-out infinite; }
+.g-free.done { display: block; animation: none; background: rgba(255, 255, 255, .04); box-shadow: inset 0 0 0 2px var(--line); color: var(--mute); font-size: 12px; text-align: center; padding: 8px; }
+.gf-ic { font-size: 32px; }
+.gf-t { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.gf-t b { font: 400 17px var(--f-disp); text-shadow: var(--tel-s); }
+.gf-t small { font-size: 11px; color: #d4ffbf; }
+.gf-go { padding: 6px 14px; border-radius: 99px; background: var(--lime); color: #123a00; font: 400 15px var(--f-disp); }
+.g-focus { margin: 12px 0; padding: 10px 12px; border-radius: 16px; background: rgba(255, 255, 255, .04); box-shadow: inset 0 0 0 2px var(--line); }
+.gfo-h { font: 400 14px var(--f-disp); }
+.gfo-h small { display: block; margin-top: 2px; font: 700 11px var(--f-body); color: var(--mute); }
+.gfo-h b { color: var(--gold); }
+.gfo-row { display: flex; gap: 6px; overflow-x: auto; padding: 8px 2px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.gfo-row::-webkit-scrollbar { display: none; }
+.gfo-row button { flex: none; padding: 6px 10px; border-radius: 99px; font-size: 12px; white-space: nowrap; background: var(--plum); box-shadow: inset 0 0 0 2px var(--line); color: var(--mute); }
+.gfo-row button.on { color: #fff; background: color-mix(in srgb, var(--tc, var(--gold)) 35%, #1a0f40); box-shadow: inset 0 0 0 2px var(--tc, var(--gold)), 0 0 12px color-mix(in srgb, var(--tc, var(--gold)) 50%, transparent); }
+.gfo-info { font-size: 12px; color: var(--mute); }
+.gfo-info b { color: #fff; font-family: var(--f-num); font-weight: 400; }
+.g-btn.bulk .g-name { font-size: 15px; }
+.g-fast { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .04); font-size: 12px; color: var(--mute); cursor: pointer; }
+.g-fast input { width: 20px; height: 20px; accent-color: var(--pink); flex: none; }
+.g-col { margin-top: 10px; font-size: 12px; color: var(--mute); text-align: center; }
+.g-col b { color: #fff; }
+.g-links { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.g-links .rates-btn { margin: 12px 0 0; }
+.gs-tally { display: flex; gap: 10px; font: 400 15px var(--f-num); text-shadow: var(--tel-s); }
+.g-summary h2 small { font-size: 14px; color: var(--mute); }
+.gs-own { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); z-index: 4; padding: 1px 8px; border-radius: 99px; background: var(--ink); color: var(--mute); font-size: 10px; white-space: nowrap; box-shadow: inset 0 0 0 1px var(--line); }
+.gcard.gs-hot { animation: gsHot 1s ease-in-out infinite alternate; }
+@keyframes gsHot { from { filter: drop-shadow(0 0 4px var(--rc)); } to { filter: drop-shadow(0 0 16px var(--rc)) brightness(1.15); } }
+.gs-hint { font-size: 11px; color: var(--mute); }
+.gs-btns { flex-wrap: wrap; justify-content: center; }
+.glog { display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; text-align: left; }
+.gl-h { font-size: 12px; color: var(--mute); margin-bottom: 4px; }
+.gl-cards { display: flex; flex-wrap: wrap; gap: 4px; }
+.gl-c { position: relative; width: 34px; height: 40px; border-radius: 8px; display: grid; place-items: center; font-size: 20px; background: var(--plum); box-shadow: inset 0 0 0 2px var(--rc); cursor: pointer; }
+.gl-c i { position: absolute; bottom: -4px; right: -3px; font: 400 8px/1.3 var(--f-num); font-style: normal; padding: 0 3px; border-radius: 4px; background: var(--ink); color: var(--rc); }
+.gl-c.r-SSR, .gl-c.r-UR { box-shadow: inset 0 0 0 2px var(--rc), 0 0 10px var(--rc); }
+.gacha-ov:has(.g-summary) { align-items: flex-start; }
+.g-summary { margin: auto 0; padding-bottom: 8px; }
+.gs-grid { row-gap: 26px; padding-bottom: 6px; }
+.gs-grid.many { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 22px 8px; }
+.gs-own { bottom: -17px; font-size: 9px; padding: 0 6px; }
+.gs-grid .conv { bottom: -17px; }
+.gs-btns { position: sticky; bottom: 0; z-index: 5; width: 100%; padding: 10px 0 calc(6px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, #07031a 30%); }
+
 </style>
 <div id="app">
   <canvas id="bgfx" aria-hidden="true"></canvas>
@@ -2312,7 +2359,7 @@ const CARD_LIST = [
     fieldAtk: (B, u, owner) => (u.owner === owner ? 10 : 0),
     fieldTurnStart: async (B, owner) => { const es = B.units(1 - owner); if (es.length) await B.damageMany(B.fieldSrc(owner), es, 10, { fx: 'fire' }); },
     ambient: 'blaze' },
-  { id: 'b_ogre', name: '鬼神バクエン', emoji: '👹', tribe: 'blaze', rarity: 'SR', type: 'unit', cost: 5, atk: 40, hp: 50, kw: ['double', 'pierce'], text: '' },
+  { id: 'b_ogre', name: '鬼神バクエン', emoji: '👹', tribe: 'blaze', rarity: 'SR', type: 'unit', cost: 6, atk: 40, hp: 50, kw: ['double', 'pierce'], text: '' },
   { id: 'b_meteor', name: 'メテオストライク', emoji: '☄️', tribe: 'blaze', rarity: 'SR', type: 'spell', cost: 5, target: 'none', text: '敵ユニット全員に30ダメージ＋炎上1',
     ai: { t: 'aoe', v: 40 },
     cast: async (B, pi) => {
@@ -2346,7 +2393,7 @@ const CARD_LIST = [
   { id: 's_skyscraper', name: '嵐の摩天楼', emoji: '🌪️', tribe: 'storm', rarity: 'R', type: 'field', cost: 3, text: 'フィールド：自分がカードを使うたび、ランダムな敵に10ダメージ',
     fieldCardPlayed: async (B, pi, owner) => { if (pi === owner) await B.damage(B.fieldSrc(owner), B.randomEnemy(owner, true), 10, { fx: 'bolt', quick: true }); },
     ambient: 'storm' },
-  { id: 's_raptor', name: '雷帝ラプトル', emoji: '🦖', tribe: 'storm', rarity: 'SR', type: 'unit', cost: 4, atk: 30, hp: 30, kw: ['chain', 'double'], text: '' },
+  { id: 's_raptor', name: '雷帝ラプトル', emoji: '🦖', tribe: 'storm', rarity: 'SR', type: 'unit', cost: 5, atk: 30, hp: 40, kw: ['chain', 'double'], text: '' },
   { id: 's_blizzard', name: 'ブリザード', emoji: '❄️', tribe: 'storm', rarity: 'SR', type: 'spell', cost: 4, target: 'none', text: '敵ユニット全員に20ダメージ＋凍結',
     ai: { t: 'aoe', v: 35 },
     cast: async (B, pi) => {
@@ -2370,7 +2417,7 @@ const CARD_LIST = [
     ai: { t: 'buff', a: 20, h: 30 }, cast: async (B, pi, t) => { await B.buff(t, 20, 30); } },
   { id: 'su_bunny', name: 'ミルクうさぎ', emoji: '🐰', tribe: 'sugar', rarity: 'N', type: 'unit', cost: 2, atk: 20, hp: 30, text: 'アタック前：自分のヒーローを20回復',
     onPreAttack: async (B, u) => { await B.heal(B.hero(u.owner), 20, u); } },
-  { id: 'su_shake', name: 'シュガーラッシュ', emoji: '🥤', tribe: 'sugar', rarity: 'N', type: 'spell', cost: 2, target: 'allyUnit', text: '味方1体に連撃を与える',
+  { id: 'su_shake', name: 'シュガーラッシュ', emoji: '🥤', tribe: 'sugar', rarity: 'N', type: 'spell', cost: 3, target: 'allyUnit', text: '味方1体に連撃を与える',
     ai: { t: 'kw', kw: 'double' }, cast: async (B, pi, t) => { B.giveKw(t, 'double'); await B.buff(t, 0, 0); } },
   { id: 'su_bear', name: 'テディガード', emoji: '🧸', tribe: 'sugar', rarity: 'N', type: 'unit', cost: 3, atk: 20, hp: 60, kw: ['thorns'], text: '' },
   { id: 'su_cupcake', name: 'カップケーキ姫', emoji: '🧁', tribe: 'sugar', rarity: 'R', type: 'unit', cost: 2, atk: 20, hp: 20, text: '登場時：他の味方全員を+10/+10',
@@ -2485,7 +2532,7 @@ const CARD_LIST = [
   { id: 'm_factory', name: 'メカ工場', emoji: '🏭', tribe: 'mecha', rarity: 'R', type: 'field', cost: 3, text: 'フィールド：自分のターン開始時、味方全員のATK+10',
     fieldTurnStart: async (B, owner) => { await B.buffAll(owner, 10, 0); },
     ambient: 'mecha' },
-  { id: 'm_gunship', name: 'ガンシップ', emoji: '🚁', tribe: 'mecha', rarity: 'SR', type: 'unit', cost: 5, atk: 40, hp: 40, kw: ['fly', 'double'], text: '' },
+  { id: 'm_gunship', name: 'ガンシップ', emoji: '🚁', tribe: 'mecha', rarity: 'SR', type: 'unit', cost: 6, atk: 40, hp: 50, kw: ['fly', 'double'], text: '' },
   { id: 'm_satellite', name: '衛星兵器アルテミス', emoji: '🛰️', tribe: 'mecha', rarity: 'SSR', type: 'unit', cost: 5, atk: 50, hp: 50, text: 'アタック前：ランダムな敵に40ダメージ',
     onPlay: async (B, u) => { await B.cutin(u, 'ターゲット、ロックオン'); },
     onPreAttack: async (B, u) => { await B.damage(u, B.randomEnemy(u.owner, true), 40, { fx: 'laser' }); } },
@@ -2571,7 +2618,7 @@ const CARD_LIST = [
   { id: 'r_moon', name: 'ブラッドムーン', emoji: '🌕', tribe: 'risk', rarity: 'SR', type: 'field', cost: 2,
     text: 'フィールド：自分のターン開始時、自分のヒーローHPを20払い、味方全員のATK+10（毎ターン重なる）',
     fieldTurnStart: async (B, owner) => { await B.payHp(owner, 20); await B.buffAll(owner, 10, 0); }, ambient: 'risk' },
-  { id: 'r_berserk', name: '狂戦士ベルセルク', emoji: '😡', tribe: 'risk', rarity: 'SSR', type: 'unit', cost: 5, atk: 40, hp: 50, kw: ['double'],
+  { id: 'r_berserk', name: '狂戦士ベルセルク', emoji: '😡', tribe: 'risk', rarity: 'SSR', type: 'unit', cost: 6, atk: 40, hp: 50, kw: ['double'],
     text: '自分のヒーローが失ったHP40ごとにATK+10',
     onPlay: async (B, u) => { await B.cutin(u, '痛みが…力になる！！'); },
     atkMod: (B, u) => { const P = B.P(u.owner); return Math.floor(Math.max(0, P.maxHp - P.hp) / 40) * 10; } },
@@ -2581,10 +2628,10 @@ const CARD_LIST = [
     text: '他に味方がいなければATK+30', atkMod: (B, u) => (B.units(u.owner).length <= 1 ? 30 : 0) },
   { id: 'so_hermit', name: '山ごもり仙人', emoji: '🧘', tribe: 'solo', rarity: 'N', type: 'unit', cost: 3, atk: 10, hp: 50,
     text: '自分の場の空きマス1つにつきATK+10', atkMod: (B, u) => B.emptyLanes(u.owner).length * 10 },
-  { id: 'so_spot', name: 'スポットライト', emoji: '🔦', tribe: 'solo', rarity: 'R', type: 'spell', cost: 1, target: 'allyUnit',
+  { id: 'so_spot', name: 'スポットライト', emoji: '🔦', tribe: 'solo', rarity: 'R', type: 'spell', cost: 2, target: 'allyUnit',
     text: '味方1体を+20/+20。味方がその1体だけなら、さらに連撃を与える', ai: { t: 'buff', a: 20, h: 20 },
     cast: async (B, pi, t) => { await B.buff(t, 20, 20); if (B.units(pi).length === 1) B.giveKw(t, 'double'); } },
-  { id: 'so_rider', name: '一騎当千ライダー', emoji: '🏇', tribe: 'solo', rarity: 'SR', type: 'unit', cost: 4, atk: 40, hp: 40,
+  { id: 'so_rider', name: '一騎当千ライダー', emoji: '🏇', tribe: 'solo', rarity: 'SR', type: 'unit', cost: 5, atk: 40, hp: 40,
     text: '他に味方がいない時、飛行と連撃を得る', dynKw: (B, u) => (B.units(u.owner).length <= 1 ? ['fly', 'double'] : []) },
   { id: 'so_lion', name: '孤高の覇王レグルス', emoji: '🦁', tribe: 'solo', rarity: 'SSR', type: 'unit', cost: 6, atk: 50, hp: 50,
     text: '登場時：他の味方をすべて破壊し、1体につき+30/+30',
@@ -2687,7 +2734,7 @@ const CARD_LIST = [
   { id: 'ry_dj', name: 'DJスクラッチ', emoji: '🎧', tribe: 'rhythm', rarity: 'SR', type: 'unit', cost: 3, atk: 30, hp: 30,
     text: '自分がカードを出すたび、ランダムな敵に20ダメージ＆コンボ+1',
     onAllyCard: async (B, a) => { await B.damage(a, B.randomEnemy(a.owner), 20, { fx: 'bolt' }); B.bumpCombo(a.owner, 1); } },
-  { id: 'ry_master', name: 'コンボマスター・ビート', emoji: '🎶', tribe: 'rhythm', rarity: 'SSR', type: 'unit', cost: 5, atk: 40, hp: 40, kw: ['double'],
+  { id: 'ry_master', name: 'コンボマスター・ビート', emoji: '🎶', tribe: 'rhythm', rarity: 'SSR', type: 'unit', cost: 6, atk: 40, hp: 40, kw: ['double'],
     text: '登場時：コンボ+3。自分のターン中、コンボ数×10だけATKが上がる（最大+80）',
     onPlay: async (B, u) => { await B.cutin(u, 'ビートを刻め！ 止まるな！'); B.bumpCombo(u.owner, 3); },
     atkMod: (B, u) => (B.G.active === u.owner ? Math.min(80, B.G.combo * 10) : 0) },
@@ -3954,7 +4001,7 @@ const AI = {
   worth(B, u) {
     const a = B.atkOf(u);
     let v = a + u.hp * 0.7 + 10;
-    if (B.hasKw(u, 'double')) v += a * 0.8;
+    if (B.hasKw(u, 'double')) v += a * 1.3; // 連撃：1回目で倒すと2回目はヒーローへ。ほぼATK2倍の価値
     if (B.hasKw(u, 'fly')) v += 15;
     if (u.shield) v += 20;
     if (B.hasKw(u, 'guard')) v += 15;
@@ -4029,7 +4076,7 @@ const AI = {
 
   uval(B, u) {
     let v = (B.atkOf(u) + u.hp) / 10;
-    if (u.kw.has('double')) v += B.atkOf(u) / 10;
+    if (B.hasKw(u, 'double')) v += B.atkOf(u) / 10 * 1.3;
     if (u.kw.has('fly')) v += 1;
     if (u.def.onTurnStart || u.def.onPreAttack) v += 2;
     if (u.shield) v += 1;
@@ -4097,7 +4144,7 @@ const AI = {
         const shield = o.shield;
         if (atk >= o.hp && !shield) s += this.uval(B, o) * 1.2;
         else s += Math.min(atk, o.hp) / 10 * 0.4;
-        s += B.atkOf(o) / 10 * 0.8;
+        s += B.atkOf(o) / 10 * 0.8 * (B.hasKw(o, 'double') ? 2 : 1);
         if (B.atkOf(o) >= def.hp && !def.kw.includes('shield')) s -= (def.atk + def.hp) / 10 * 0.45;
       }
       // 自分の盤面がスカスカなら展開を優先
@@ -4137,7 +4184,7 @@ const AI = {
         if (!tu) return -1;
         s = (ai.a + ai.h) / 10 * 0.7;
         if (!B.oppositeOf(tu) || tu.kw.has('fly')) s += ai.a / 10 * 0.6;
-        if (tu.kw.has('double')) s += ai.a / 10 * 0.5;
+        if (B.hasKw(tu, 'double')) s += ai.a / 10 * 1.2;
         return s;
       }
       case 'buffAll': return B.units(pi).length * (ai.a + ai.h) / 10 * 0.6;
@@ -4148,7 +4195,7 @@ const AI = {
       }
       case 'kw': {
         if (!tu || tu.kw.has(ai.kw)) return -1;
-        return B.atkOf(tu) / 10 * 1.2;
+        return B.atkOf(tu) / 10 * (ai.kw === 'double' ? 2.2 : 1.2);
       }
     }
     switch (def.id) {
@@ -4758,7 +4805,7 @@ function rushConfig(id) {
 const SAVE_KEY = 'dopaburst_save_v1';
 const SET_KEY = 'dopaburst_settings_v1';
 
-const Settings = { bgm: 0.5, sfx: 0.8, speed: 1, autoEnd: false, reduced: false, vibrate: true, muted: false, preview: true, tips: true, autoHint: true };
+const Settings = { bgm: 0.5, sfx: 0.8, speed: 1, autoEnd: false, reduced: false, vibrate: true, muted: false, preview: true, tips: true, autoHint: true, gachaFast: false };
 
 const AVATARS = [['😎', 1], ['🤠', 3], ['🥷', 5], ['🦸', 7], ['🧙', 9], ['👽', 11], ['🐲', 14], ['🦊', 17], ['👑', 20], ['🧠', 25]];
 const CONVERT = { N: 10, R: 30, SR: 100, SSR: 300, UR: 800 };
@@ -4805,6 +4852,7 @@ const Meta = {
       life: { wins: 0, battles: 0, crits: 0, merges: 0, kills: 0 },
       flags: {}, newCards: [],
       rush: { wins: {}, tries: {}, best: {}, fastest: {}, allClear: false },
+      gacha: { focus: null, log: [], freeDate: '' },
     };
   },
   load() {
@@ -4889,9 +4937,20 @@ const Meta = {
     if (s.pity >= this.PITY_MAX - 1 && RARITY[r].rank < 3) r = R.chance(0.12) ? 'UR' : 'SSR';
     if (RARITY[r].rank >= 3) s.pity = 0; else s.pity++;
     const pool = COLLECTIBLE.filter(c => c.rarity === r);
-    const def = R.weighted(pool.map(c => [c, this.owned(c.id) ? 1 : 1.6]));
+    // 未所持は1.6倍、ピックアップ属性は3倍出やすい（レア度の確率は変わらない）
+    const focus = s.gacha.focus;
+    const def = R.weighted(pool.map(c => [c, (this.owned(c.id) ? 1 : 1.6) * (focus && c.tribe === focus ? this.FOCUS_RATE : 1)]));
     s.pulls++;
     return def.id;
+  },
+  FOCUS_RATE: 5,
+  freeGachaReady() { return this.save.gacha.freeDate !== todayStr(); },
+  useFreeGacha() { if (!this.freeGachaReady()) return false; this.save.gacha.freeDate = todayStr(); this.persist(); return true; },
+  logGacha(type, packs) {
+    const g = this.save.gacha;
+    g.log.unshift({ t: Date.now(), type, ids: packs.flat().map(r => r.id) });
+    g.log.length = Math.min(g.log.length, 30);
+    this.persist();
   },
   pullPack(type) {
     const g = this.GACHA[type];
@@ -7150,14 +7209,15 @@ const UI = {
     const next = Meta.nextStage(), ns = STAGES[next];
     const col = Meta.collectionRate();
     const claim = Meta.claimable();
-    const free = s.tickets + s.premium;
+    const free = s.tickets + s.premium + (Meta.freeGachaReady() ? 1 : 0);
     const need = Meta.xpNeed(s.level);
     const picks = COLLECTIBLE.filter(c => RARITY[c.rarity].rank >= 3);
     const pick = picks[hashStr(todayStr()) % picks.length];
     const misTotal = s.missions.list.length;
     const misDone = s.missions.list.filter(m => { const d = Meta.missionDef(m.id); return d && m.prog >= d.goal; }).length;
     let line = R.pick(MASCOT_LINES);
-    if (free > 0) line = `チケットが${free}枚あるよ！ ガチャ引こ！🎴`;
+    if (Meta.freeGachaReady()) line = '今日の無料ガチャがまだだよ！ 引こ引こ！🎁';
+    else if (free > 0) line = `チケットが${free}枚あるよ！ ガチャ引こ！🎴`;
     else if (claim > 0) line = `ミッション報酬が${claim}個受け取れるよ！🎯`;
     r.innerHTML = `
       <div class="home">
@@ -7404,8 +7464,12 @@ const UI = {
 
   /* ---------- ガチャ ---------- */
   gacha() {
-    const s = Meta.save, r = $('#scr-gacha');
+    const s = Meta.save, r = $('#scr-gacha'), g = s.gacha;
     const pityLeft = Meta.PITY_MAX - s.pity;
+    const col = Meta.collectionRate();
+    const free = Meta.freeGachaReady();
+    const focus = g.focus;
+    const focusOwned = focus ? COLLECTIBLE.filter(c => c.tribe === focus) : null;
     r.innerHTML = `
       ${topbar('ガチャ')}
       <div class="scroll">
@@ -7413,9 +7477,18 @@ const UI = {
           <div class="g-pack-art"><div class="pack mini"><div class="pack-logo">DOPA<br>BURST</div></div><div class="pack mini prem"><div class="pack-logo">PREMIUM</div></div></div>
           <div class="g-copy"><b>1パック5枚入り！</b>5枚目はR以上確定</div>
         </div>
+        ${free ? `<button type="button" class="g-free" data-t="free"><span class="gf-ic">🎁</span><span class="gf-t"><b>本日の無料ガチャ</b><small>ノーマルパック×1・毎日0時に復活</small></span><span class="gf-go">引く!</span></button>` : `<div class="g-free done">🎁 本日の無料ガチャは受け取り済み・また明日！</div>`}
         <div class="pity">
           <div class="pity-t">SSR以上確定まで あと <b>${pityLeft}</b> 枚</div>
           <div class="pity-bar"><i style="width:${s.pity / Meta.PITY_MAX * 100}%"></i></div>
+        </div>
+        <div class="g-focus">
+          <div class="gfo-h">🎯 ピックアップ属性 <small>選んだ属性のカードが<b>${Meta.FOCUS_RATE}倍</b>出やすい（レア度の確率は同じ）</small></div>
+          <div class="gfo-row">
+            <button type="button" data-f="" class="${!focus ? 'on' : ''}">なし</button>
+            ${TRIBE_ORDER.map(t => `<button type="button" data-f="${t}" class="${focus === t ? 'on' : ''}" style="--tc:${TRIBES[t].color}">${TRIBES[t].icon}${TRIBES[t].name}</button>`).join('')}
+          </div>
+          ${focus ? `<div class="gfo-info">${TRIBES[focus].icon}${TRIBES[focus].name}：所持 <b>${focusOwned.filter(c => Meta.owned(c.id)).length}</b> / ${focusOwned.length}種</div>` : ''}
         </div>
         <div class="g-buttons">
           <button type="button" class="g-btn" data-t="n1">
@@ -7426,42 +7499,93 @@ const UI = {
             <span class="g-name">ノーマルパック ×5 <em>10%OFF</em></span>
             <span class="g-cost">🪙 450</span>
           </button>
+          ${s.tickets >= 2 ? `<button type="button" class="g-btn multi bulk" data-t="nt">
+            <span class="g-name">🎫チケットまとめて使う ×${Math.min(10, s.tickets)}</span>
+            <span class="g-cost">🎫 ${Math.min(10, s.tickets)}枚</span>
+          </button>` : ''}
           <button type="button" class="g-btn prem" data-t="p1">
             <span class="g-name">プレミアムパック <em>SR以上1枚確定!</em></span>
             <span class="g-cost">${s.premium ? '💎 1枚' : '🪙 300'}</span>
           </button>
+          ${s.premium >= 2 ? `<button type="button" class="g-btn prem bulk" data-t="pp">
+            <span class="g-name">💎ダイヤまとめて使う ×${Math.min(10, s.premium)}</span>
+            <span class="g-cost">💎 ${Math.min(10, s.premium)}個</span>
+          </button>` : ''}
+        </div>
+        <label class="g-fast"><input type="checkbox" ${Settings.gachaFast ? 'checked' : ''}><span>⚡ 演出スキップ（結果だけすぐ見る。SSR以上は光って教えてくれる）</span></label>
+        <div class="g-col">📖 図鑑 <b>${col.got}</b> / ${col.total}（${col.pct}%）・ 未所持のカードは<b>1.6倍</b>出やすい</div>
+        <div class="g-links">
+          <button class="rates-btn" type="button" data-a="rates">📊 提供割合</button>
+          <button class="rates-btn" type="button" data-a="log">📜 ガチャ履歴</button>
         </div>
         <button class="shop-link" type="button" data-go-shop>🛒 欲しいカードが決まっているなら<b>交換所</b>へ（コインで確定入手）</button>
-        <button class="rates-btn" type="button">📊 提供割合</button>
       </div>`;
     bindBack(r);
-    $$('.g-btn', r).forEach(b => b.addEventListener('click', () => this.buyPack(b.dataset.t)));
+    $$('[data-t]', r).forEach(b => b.addEventListener('click', () => this.buyPack(b.dataset.t)));
+    const onChip = $('.gfo-row .on', r);
+    if (onChip) onChip.parentNode.scrollLeft = Math.max(0, onChip.offsetLeft - 60);
+    $$('.gfo-row [data-f]', r).forEach(b => b.addEventListener('click', () => {
+      Sound.play('tap');
+      g.focus = b.dataset.f || null; Meta.persist();
+      const y = $('.scroll', r).scrollTop, x = $('.gfo-row', r).scrollLeft;
+      UI.gacha();
+      $('.scroll', r).scrollTop = y; $('.gfo-row', r).scrollLeft = x;
+    }));
+    $('.g-fast input', r).addEventListener('change', ev => { Settings.gachaFast = ev.target.checked; Meta.saveSettings(); Sound.play('tap'); });
     $('[data-go-shop]', r).addEventListener('click', () => { Sound.play('select'); Screens.show('shop'); });
-    $('.rates-btn', r).addEventListener('click', () => {
+    $('[data-a="rates"]', r).addEventListener('click', () => {
       const row = t => Object.entries(t).map(([k, v]) => `<span style="color:${RARITY[k].color}">${k} ${v}%</span>`).join(' ');
       Modal.open(`<h2>提供割合</h2>
         <div class="rates"><h3>ノーマル（1〜4枚目）</h3><p>${row(Meta.GACHA.normal.slots[0])}</p><h3>ノーマル（5枚目）</h3><p>${row(Meta.GACHA.normal.slots[4])}</p>
         <h3>プレミアム（1〜4枚目）</h3><p>${row(Meta.GACHA.premium.slots[0])}</p><h3>プレミアム（5枚目）</h3><p>${row(Meta.GACHA.premium.slots[4])}</p>
-        <p class="small">${Meta.PITY_MAX}枚以内にSSR以上が出なければ次は必ずSSR以上（天井）。上限（URは1枚・他は3枚）を超えたダブりはコインに変換されます。</p></div>
+        <p class="small">${Meta.PITY_MAX}枚以内にSSR以上が出なければ次は必ずSSR以上（天井）。同じレア度の中では、未所持のカードは1.6倍、ピックアップ属性のカードは${Meta.FOCUS_RATE}倍出やすい。上限（URは1枚・他は3枚）を超えたダブりはコインに変換されます。</p></div>
         <button class="btn" type="button" data-close>閉じる</button>`).querySelector('[data-close]').addEventListener('click', () => Modal.close());
     });
+    $('[data-a="log"]', r).addEventListener('click', () => UI.gachaLog());
     Sound.bgm('home');
+  },
+  gachaLog() {
+    const log = Meta.save.gacha.log;
+    const box = Modal.open(`<h2>📜 ガチャ履歴</h2>
+      <div class="glog">${log.length ? log.map(e => {
+        const d = new Date(e.t);
+        const ids = e.ids.slice().sort((a, b) => RARITY[CARDS[b].rarity].rank - RARITY[CARDS[a].rarity].rank);
+        return `<div class="gl-row"><div class="gl-h">${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} ・ ${e.type === 'premium' ? 'プレミアム' : 'ノーマル'} ${e.ids.length / 5}パック</div>
+          <div class="gl-cards">${ids.map(id => `<span class="gl-c r-${CARDS[id].rarity}" style="--rc:${RARITY[CARDS[id].rarity].color}" data-id="${id}">${CARDS[id].emoji}<i>${CARDS[id].rarity}</i></span>`).join('')}</div></div>`;
+      }).join('') : '<p class="small">まだガチャを引いていないよ</p>'}</div>
+      <button class="btn" type="button" data-close>閉じる</button>`, { cls: 'glog-m' });
+    box.addEventListener('click', ev => {
+      const c = ev.target.closest('[data-id]');
+      if (c) { Preview.show(CARDS[c.dataset.id]); return; }
+      if (ev.target.closest('[data-close]')) Modal.close();
+    });
   },
   buyPack(t) {
     const s = Meta.save;
+    // まとめ引きの「もう1回」で残りがなければ、ふつうの1回に切り替える
+    if (t === 'nt' && s.tickets < 1) t = 'n1';
+    if (t === 'pp' && s.premium < 1) t = 'p1';
     let cost, type = 'normal', packs = 1;
-    if (t === 'n1') cost = s.tickets ? { kind: 'tickets', n: 1 } : { kind: 'coins', n: 100 };
+    if (t === 'free') {
+      if (!Meta.useFreeGacha()) { Sound.play('error'); return; }
+      cost = null;
+    } else if (t === 'n1') cost = s.tickets ? { kind: 'tickets', n: 1 } : { kind: 'coins', n: 100 };
     else if (t === 'n5') { cost = { kind: 'coins', n: 450 }; packs = 5; }
+    else if (t === 'nt') { packs = Math.min(10, s.tickets); cost = { kind: 'tickets', n: packs }; }
+    else if (t === 'pp') { packs = Math.min(10, s.premium); cost = { kind: 'premium', n: packs }; type = 'premium'; }
     else { cost = s.premium ? { kind: 'premium', n: 1 } : { kind: 'coins', n: 300 }; type = 'premium'; }
-    if (!Meta.pay(cost)) {
+    if (cost && (cost.n <= 0 || !Meta.pay(cost))) {
       Sound.play('error');
-      FX.toast(cost.kind === 'coins' ? `コインが足りない！（あと🪙${cost.n - s.coins}）バトルで稼ごう！` : 'チケットが足りない！');
+      FX.toast(cost.kind === 'coins' ? `コインが足りない！（あと🪙${cost.n - s.coins}）バトルで稼ごう！` : cost.kind === 'premium' ? 'ダイヤが足りない！' : 'チケットが足りない！');
       return;
     }
     Sound.play('select');
     const results = [];
     for (let i = 0; i < packs; i++) results.push(Meta.pullPack(type));
-    Gacha.open(results, type, () => { Screens.show('gacha'); }, t);
+    Meta.logGacha(type, results);
+    // 「もう1回」は同じ種類で（無料は通常の1回に、まとめ引きは残りの数で）
+    const again = t === 'free' ? 'n1' : t;
+    Gacha.open(results, type, () => { Screens.show('gacha'); }, again);
   },
 
   /* ---------- デッキ ---------- */
@@ -7926,7 +8050,7 @@ const Gacha = {
     const ov = el('div', 'gacha-ov');
     document.body.appendChild(ov);
     Sound.bgm(null);
-    let skipAll = false;
+    let skipAll = !!Settings.gachaFast;
     for (let p = 0; p < packs.length && !skipAll; p++) {
       const res = await this.openPack(ov, packs[p], type, p, packs.length);
       if (res === 'skip') skipAll = true;
@@ -7936,11 +8060,17 @@ const Gacha = {
     const best = all.reduce((m, r) => Math.max(m, RARITY[CARDS[r.id].rarity].rank), 0);
     const conv = all.reduce((s, r) => s + r.conv, 0);
     const news = all.filter(r => r.isNew).length;
-    ov.innerHTML = `<div class="g-summary"><h2>獲得カード</h2><div class="gs-grid"></div><div class="gs-info">${news ? `<b class="new">NEW ×${news}</b>` : ''}${conv ? `<span>ダブり変換 🪙+${fmt(conv)}</span>` : ''}</div><div class="gs-btns"><button class="btn big hot" type="button" data-a="again">もう1回!</button><button class="btn ghost" type="button" data-a="close">閉じる</button></div></div>`;
+    const cnt = {};
+    all.forEach(r => { const k = CARDS[r.id].rarity; cnt[k] = (cnt[k] || 0) + 1; });
+    const tally = RARITY_ORDER.slice().reverse().filter(k => cnt[k]).map(k => `<span style="color:${RARITY[k].color}">${k}×${cnt[k]}</span>`).join('');
+    ov.innerHTML = `<div class="g-summary"><h2>獲得カード <small>${all.length}枚</small></h2><div class="gs-tally">${tally}</div><div class="gs-grid"></div><div class="gs-info">${news ? `<b class="new">NEW ×${news}</b>` : ''}${conv ? `<span>ダブり変換 🪙+${fmt(conv)}</span>` : ''}<span class="gs-hint">カードをタップで詳細</span></div><div class="gs-btns"><button class="btn big hot" type="button" data-a="again">もう1回!</button><button class="btn" type="button" data-a="deck">🃏 デッキ編成へ</button><button class="btn ghost" type="button" data-a="close">閉じる</button></div></div>`;
     const grid = $('.gs-grid', ov);
-    all.sort((a, b) => RARITY[CARDS[b.id].rarity].rank - RARITY[CARDS[a.id].rarity].rank).forEach((r, i) => {
-      const c = cardEl(CARDS[r.id], { cls: 'gcard', isNew: r.isNew });
+    if (all.length > 10) grid.classList.add('many');
+    all.sort((a, b) => RARITY[CARDS[b.id].rarity].rank - RARITY[CARDS[a.id].rarity].rank || b.isNew - a.isNew).forEach((r, i) => {
+      const def = CARDS[r.id];
+      const c = cardEl(def, { cls: 'gcard' + (RARITY[def.rarity].rank >= 3 ? ' gs-hot' : ''), isNew: r.isNew });
       if (r.conv) c.appendChild(el('div', 'conv', `🪙+${r.conv}`));
+      else c.appendChild(el('div', 'gs-own', `所持 ${Meta.owned(r.id)}/${MAXCOPY(def.rarity)}`));
       c.style.animationDelay = (i * 30) + 'ms';
       c.addEventListener('click', () => Preview.show(CARDS[r.id]));
       grid.appendChild(c);
@@ -7952,6 +8082,7 @@ const Gacha = {
       ov.remove();
       Sound.bgm('home');
       if (a.dataset.a === 'again') { onClose(); UI.buyPack(again); }
+      else if (a.dataset.a === 'deck') Screens.show('deck');
       else onClose();
     });
   },

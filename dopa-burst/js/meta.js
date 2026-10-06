@@ -4,7 +4,7 @@
 const SAVE_KEY = 'dopaburst_save_v1';
 const SET_KEY = 'dopaburst_settings_v1';
 
-const Settings = { bgm: 0.5, sfx: 0.8, speed: 1, autoEnd: false, reduced: false, vibrate: true, muted: false, preview: true, tips: true, autoHint: true };
+const Settings = { bgm: 0.5, sfx: 0.8, speed: 1, autoEnd: false, reduced: false, vibrate: true, muted: false, preview: true, tips: true, autoHint: true, gachaFast: false };
 
 const AVATARS = [['😎', 1], ['🤠', 3], ['🥷', 5], ['🦸', 7], ['🧙', 9], ['👽', 11], ['🐲', 14], ['🦊', 17], ['👑', 20], ['🧠', 25]];
 const CONVERT = { N: 10, R: 30, SR: 100, SSR: 300, UR: 800 };
@@ -51,6 +51,7 @@ const Meta = {
       life: { wins: 0, battles: 0, crits: 0, merges: 0, kills: 0 },
       flags: {}, newCards: [],
       rush: { wins: {}, tries: {}, best: {}, fastest: {}, allClear: false },
+      gacha: { focus: null, log: [], freeDate: '' },
     };
   },
   load() {
@@ -135,9 +136,20 @@ const Meta = {
     if (s.pity >= this.PITY_MAX - 1 && RARITY[r].rank < 3) r = R.chance(0.12) ? 'UR' : 'SSR';
     if (RARITY[r].rank >= 3) s.pity = 0; else s.pity++;
     const pool = COLLECTIBLE.filter(c => c.rarity === r);
-    const def = R.weighted(pool.map(c => [c, this.owned(c.id) ? 1 : 1.6]));
+    // 未所持は1.6倍、ピックアップ属性は3倍出やすい（レア度の確率は変わらない）
+    const focus = s.gacha.focus;
+    const def = R.weighted(pool.map(c => [c, (this.owned(c.id) ? 1 : 1.6) * (focus && c.tribe === focus ? this.FOCUS_RATE : 1)]));
     s.pulls++;
     return def.id;
+  },
+  FOCUS_RATE: 5,
+  freeGachaReady() { return this.save.gacha.freeDate !== todayStr(); },
+  useFreeGacha() { if (!this.freeGachaReady()) return false; this.save.gacha.freeDate = todayStr(); this.persist(); return true; },
+  logGacha(type, packs) {
+    const g = this.save.gacha;
+    g.log.unshift({ t: Date.now(), type, ids: packs.flat().map(r => r.id) });
+    g.log.length = Math.min(g.log.length, 30);
+    this.persist();
   },
   pullPack(type) {
     const g = this.GACHA[type];

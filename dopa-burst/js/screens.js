@@ -108,14 +108,15 @@ const UI = {
     const next = Meta.nextStage(), ns = STAGES[next];
     const col = Meta.collectionRate();
     const claim = Meta.claimable();
-    const free = s.tickets + s.premium;
+    const free = s.tickets + s.premium + (Meta.freeGachaReady() ? 1 : 0);
     const need = Meta.xpNeed(s.level);
     const picks = COLLECTIBLE.filter(c => RARITY[c.rarity].rank >= 3);
     const pick = picks[hashStr(todayStr()) % picks.length];
     const misTotal = s.missions.list.length;
     const misDone = s.missions.list.filter(m => { const d = Meta.missionDef(m.id); return d && m.prog >= d.goal; }).length;
     let line = R.pick(MASCOT_LINES);
-    if (free > 0) line = `チケットが${free}枚あるよ！ ガチャ引こ！🎴`;
+    if (Meta.freeGachaReady()) line = '今日の無料ガチャがまだだよ！ 引こ引こ！🎁';
+    else if (free > 0) line = `チケットが${free}枚あるよ！ ガチャ引こ！🎴`;
     else if (claim > 0) line = `ミッション報酬が${claim}個受け取れるよ！🎯`;
     r.innerHTML = `
       <div class="home">
@@ -362,8 +363,12 @@ const UI = {
 
   /* ---------- ガチャ ---------- */
   gacha() {
-    const s = Meta.save, r = $('#scr-gacha');
+    const s = Meta.save, r = $('#scr-gacha'), g = s.gacha;
     const pityLeft = Meta.PITY_MAX - s.pity;
+    const col = Meta.collectionRate();
+    const free = Meta.freeGachaReady();
+    const focus = g.focus;
+    const focusOwned = focus ? COLLECTIBLE.filter(c => c.tribe === focus) : null;
     r.innerHTML = `
       ${topbar('ガチャ')}
       <div class="scroll">
@@ -371,9 +376,18 @@ const UI = {
           <div class="g-pack-art"><div class="pack mini"><div class="pack-logo">DOPA<br>BURST</div></div><div class="pack mini prem"><div class="pack-logo">PREMIUM</div></div></div>
           <div class="g-copy"><b>1パック5枚入り！</b>5枚目はR以上確定</div>
         </div>
+        ${free ? `<button type="button" class="g-free" data-t="free"><span class="gf-ic">🎁</span><span class="gf-t"><b>本日の無料ガチャ</b><small>ノーマルパック×1・毎日0時に復活</small></span><span class="gf-go">引く!</span></button>` : `<div class="g-free done">🎁 本日の無料ガチャは受け取り済み・また明日！</div>`}
         <div class="pity">
           <div class="pity-t">SSR以上確定まで あと <b>${pityLeft}</b> 枚</div>
           <div class="pity-bar"><i style="width:${s.pity / Meta.PITY_MAX * 100}%"></i></div>
+        </div>
+        <div class="g-focus">
+          <div class="gfo-h">🎯 ピックアップ属性 <small>選んだ属性のカードが<b>${Meta.FOCUS_RATE}倍</b>出やすい（レア度の確率は同じ）</small></div>
+          <div class="gfo-row">
+            <button type="button" data-f="" class="${!focus ? 'on' : ''}">なし</button>
+            ${TRIBE_ORDER.map(t => `<button type="button" data-f="${t}" class="${focus === t ? 'on' : ''}" style="--tc:${TRIBES[t].color}">${TRIBES[t].icon}${TRIBES[t].name}</button>`).join('')}
+          </div>
+          ${focus ? `<div class="gfo-info">${TRIBES[focus].icon}${TRIBES[focus].name}：所持 <b>${focusOwned.filter(c => Meta.owned(c.id)).length}</b> / ${focusOwned.length}種</div>` : ''}
         </div>
         <div class="g-buttons">
           <button type="button" class="g-btn" data-t="n1">
@@ -384,42 +398,93 @@ const UI = {
             <span class="g-name">ノーマルパック ×5 <em>10%OFF</em></span>
             <span class="g-cost">🪙 450</span>
           </button>
+          ${s.tickets >= 2 ? `<button type="button" class="g-btn multi bulk" data-t="nt">
+            <span class="g-name">🎫チケットまとめて使う ×${Math.min(10, s.tickets)}</span>
+            <span class="g-cost">🎫 ${Math.min(10, s.tickets)}枚</span>
+          </button>` : ''}
           <button type="button" class="g-btn prem" data-t="p1">
             <span class="g-name">プレミアムパック <em>SR以上1枚確定!</em></span>
             <span class="g-cost">${s.premium ? '💎 1枚' : '🪙 300'}</span>
           </button>
+          ${s.premium >= 2 ? `<button type="button" class="g-btn prem bulk" data-t="pp">
+            <span class="g-name">💎ダイヤまとめて使う ×${Math.min(10, s.premium)}</span>
+            <span class="g-cost">💎 ${Math.min(10, s.premium)}個</span>
+          </button>` : ''}
+        </div>
+        <label class="g-fast"><input type="checkbox" ${Settings.gachaFast ? 'checked' : ''}><span>⚡ 演出スキップ（結果だけすぐ見る。SSR以上は光って教えてくれる）</span></label>
+        <div class="g-col">📖 図鑑 <b>${col.got}</b> / ${col.total}（${col.pct}%）・ 未所持のカードは<b>1.6倍</b>出やすい</div>
+        <div class="g-links">
+          <button class="rates-btn" type="button" data-a="rates">📊 提供割合</button>
+          <button class="rates-btn" type="button" data-a="log">📜 ガチャ履歴</button>
         </div>
         <button class="shop-link" type="button" data-go-shop>🛒 欲しいカードが決まっているなら<b>交換所</b>へ（コインで確定入手）</button>
-        <button class="rates-btn" type="button">📊 提供割合</button>
       </div>`;
     bindBack(r);
-    $$('.g-btn', r).forEach(b => b.addEventListener('click', () => this.buyPack(b.dataset.t)));
+    $$('[data-t]', r).forEach(b => b.addEventListener('click', () => this.buyPack(b.dataset.t)));
+    const onChip = $('.gfo-row .on', r);
+    if (onChip) onChip.parentNode.scrollLeft = Math.max(0, onChip.offsetLeft - 60);
+    $$('.gfo-row [data-f]', r).forEach(b => b.addEventListener('click', () => {
+      Sound.play('tap');
+      g.focus = b.dataset.f || null; Meta.persist();
+      const y = $('.scroll', r).scrollTop, x = $('.gfo-row', r).scrollLeft;
+      UI.gacha();
+      $('.scroll', r).scrollTop = y; $('.gfo-row', r).scrollLeft = x;
+    }));
+    $('.g-fast input', r).addEventListener('change', ev => { Settings.gachaFast = ev.target.checked; Meta.saveSettings(); Sound.play('tap'); });
     $('[data-go-shop]', r).addEventListener('click', () => { Sound.play('select'); Screens.show('shop'); });
-    $('.rates-btn', r).addEventListener('click', () => {
+    $('[data-a="rates"]', r).addEventListener('click', () => {
       const row = t => Object.entries(t).map(([k, v]) => `<span style="color:${RARITY[k].color}">${k} ${v}%</span>`).join(' ');
       Modal.open(`<h2>提供割合</h2>
         <div class="rates"><h3>ノーマル（1〜4枚目）</h3><p>${row(Meta.GACHA.normal.slots[0])}</p><h3>ノーマル（5枚目）</h3><p>${row(Meta.GACHA.normal.slots[4])}</p>
         <h3>プレミアム（1〜4枚目）</h3><p>${row(Meta.GACHA.premium.slots[0])}</p><h3>プレミアム（5枚目）</h3><p>${row(Meta.GACHA.premium.slots[4])}</p>
-        <p class="small">${Meta.PITY_MAX}枚以内にSSR以上が出なければ次は必ずSSR以上（天井）。上限（URは1枚・他は3枚）を超えたダブりはコインに変換されます。</p></div>
+        <p class="small">${Meta.PITY_MAX}枚以内にSSR以上が出なければ次は必ずSSR以上（天井）。同じレア度の中では、未所持のカードは1.6倍、ピックアップ属性のカードは${Meta.FOCUS_RATE}倍出やすい。上限（URは1枚・他は3枚）を超えたダブりはコインに変換されます。</p></div>
         <button class="btn" type="button" data-close>閉じる</button>`).querySelector('[data-close]').addEventListener('click', () => Modal.close());
     });
+    $('[data-a="log"]', r).addEventListener('click', () => UI.gachaLog());
     Sound.bgm('home');
+  },
+  gachaLog() {
+    const log = Meta.save.gacha.log;
+    const box = Modal.open(`<h2>📜 ガチャ履歴</h2>
+      <div class="glog">${log.length ? log.map(e => {
+        const d = new Date(e.t);
+        const ids = e.ids.slice().sort((a, b) => RARITY[CARDS[b].rarity].rank - RARITY[CARDS[a].rarity].rank);
+        return `<div class="gl-row"><div class="gl-h">${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} ・ ${e.type === 'premium' ? 'プレミアム' : 'ノーマル'} ${e.ids.length / 5}パック</div>
+          <div class="gl-cards">${ids.map(id => `<span class="gl-c r-${CARDS[id].rarity}" style="--rc:${RARITY[CARDS[id].rarity].color}" data-id="${id}">${CARDS[id].emoji}<i>${CARDS[id].rarity}</i></span>`).join('')}</div></div>`;
+      }).join('') : '<p class="small">まだガチャを引いていないよ</p>'}</div>
+      <button class="btn" type="button" data-close>閉じる</button>`, { cls: 'glog-m' });
+    box.addEventListener('click', ev => {
+      const c = ev.target.closest('[data-id]');
+      if (c) { Preview.show(CARDS[c.dataset.id]); return; }
+      if (ev.target.closest('[data-close]')) Modal.close();
+    });
   },
   buyPack(t) {
     const s = Meta.save;
+    // まとめ引きの「もう1回」で残りがなければ、ふつうの1回に切り替える
+    if (t === 'nt' && s.tickets < 1) t = 'n1';
+    if (t === 'pp' && s.premium < 1) t = 'p1';
     let cost, type = 'normal', packs = 1;
-    if (t === 'n1') cost = s.tickets ? { kind: 'tickets', n: 1 } : { kind: 'coins', n: 100 };
+    if (t === 'free') {
+      if (!Meta.useFreeGacha()) { Sound.play('error'); return; }
+      cost = null;
+    } else if (t === 'n1') cost = s.tickets ? { kind: 'tickets', n: 1 } : { kind: 'coins', n: 100 };
     else if (t === 'n5') { cost = { kind: 'coins', n: 450 }; packs = 5; }
+    else if (t === 'nt') { packs = Math.min(10, s.tickets); cost = { kind: 'tickets', n: packs }; }
+    else if (t === 'pp') { packs = Math.min(10, s.premium); cost = { kind: 'premium', n: packs }; type = 'premium'; }
     else { cost = s.premium ? { kind: 'premium', n: 1 } : { kind: 'coins', n: 300 }; type = 'premium'; }
-    if (!Meta.pay(cost)) {
+    if (cost && (cost.n <= 0 || !Meta.pay(cost))) {
       Sound.play('error');
-      FX.toast(cost.kind === 'coins' ? `コインが足りない！（あと🪙${cost.n - s.coins}）バトルで稼ごう！` : 'チケットが足りない！');
+      FX.toast(cost.kind === 'coins' ? `コインが足りない！（あと🪙${cost.n - s.coins}）バトルで稼ごう！` : cost.kind === 'premium' ? 'ダイヤが足りない！' : 'チケットが足りない！');
       return;
     }
     Sound.play('select');
     const results = [];
     for (let i = 0; i < packs; i++) results.push(Meta.pullPack(type));
-    Gacha.open(results, type, () => { Screens.show('gacha'); }, t);
+    Meta.logGacha(type, results);
+    // 「もう1回」は同じ種類で（無料は通常の1回に、まとめ引きは残りの数で）
+    const again = t === 'free' ? 'n1' : t;
+    Gacha.open(results, type, () => { Screens.show('gacha'); }, again);
   },
 
   /* ---------- デッキ ---------- */
@@ -884,7 +949,7 @@ const Gacha = {
     const ov = el('div', 'gacha-ov');
     document.body.appendChild(ov);
     Sound.bgm(null);
-    let skipAll = false;
+    let skipAll = !!Settings.gachaFast;
     for (let p = 0; p < packs.length && !skipAll; p++) {
       const res = await this.openPack(ov, packs[p], type, p, packs.length);
       if (res === 'skip') skipAll = true;
@@ -894,11 +959,17 @@ const Gacha = {
     const best = all.reduce((m, r) => Math.max(m, RARITY[CARDS[r.id].rarity].rank), 0);
     const conv = all.reduce((s, r) => s + r.conv, 0);
     const news = all.filter(r => r.isNew).length;
-    ov.innerHTML = `<div class="g-summary"><h2>獲得カード</h2><div class="gs-grid"></div><div class="gs-info">${news ? `<b class="new">NEW ×${news}</b>` : ''}${conv ? `<span>ダブり変換 🪙+${fmt(conv)}</span>` : ''}</div><div class="gs-btns"><button class="btn big hot" type="button" data-a="again">もう1回!</button><button class="btn ghost" type="button" data-a="close">閉じる</button></div></div>`;
+    const cnt = {};
+    all.forEach(r => { const k = CARDS[r.id].rarity; cnt[k] = (cnt[k] || 0) + 1; });
+    const tally = RARITY_ORDER.slice().reverse().filter(k => cnt[k]).map(k => `<span style="color:${RARITY[k].color}">${k}×${cnt[k]}</span>`).join('');
+    ov.innerHTML = `<div class="g-summary"><h2>獲得カード <small>${all.length}枚</small></h2><div class="gs-tally">${tally}</div><div class="gs-grid"></div><div class="gs-info">${news ? `<b class="new">NEW ×${news}</b>` : ''}${conv ? `<span>ダブり変換 🪙+${fmt(conv)}</span>` : ''}<span class="gs-hint">カードをタップで詳細</span></div><div class="gs-btns"><button class="btn big hot" type="button" data-a="again">もう1回!</button><button class="btn" type="button" data-a="deck">🃏 デッキ編成へ</button><button class="btn ghost" type="button" data-a="close">閉じる</button></div></div>`;
     const grid = $('.gs-grid', ov);
-    all.sort((a, b) => RARITY[CARDS[b.id].rarity].rank - RARITY[CARDS[a.id].rarity].rank).forEach((r, i) => {
-      const c = cardEl(CARDS[r.id], { cls: 'gcard', isNew: r.isNew });
+    if (all.length > 10) grid.classList.add('many');
+    all.sort((a, b) => RARITY[CARDS[b.id].rarity].rank - RARITY[CARDS[a.id].rarity].rank || b.isNew - a.isNew).forEach((r, i) => {
+      const def = CARDS[r.id];
+      const c = cardEl(def, { cls: 'gcard' + (RARITY[def.rarity].rank >= 3 ? ' gs-hot' : ''), isNew: r.isNew });
       if (r.conv) c.appendChild(el('div', 'conv', `🪙+${r.conv}`));
+      else c.appendChild(el('div', 'gs-own', `所持 ${Meta.owned(r.id)}/${MAXCOPY(def.rarity)}`));
       c.style.animationDelay = (i * 30) + 'ms';
       c.addEventListener('click', () => Preview.show(CARDS[r.id]));
       grid.appendChild(c);
@@ -910,6 +981,7 @@ const Gacha = {
       ov.remove();
       Sound.bgm('home');
       if (a.dataset.a === 'again') { onClose(); UI.buyPack(again); }
+      else if (a.dataset.a === 'deck') Screens.show('deck');
       else onClose();
     });
   },
