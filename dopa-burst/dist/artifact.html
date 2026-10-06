@@ -2808,18 +2808,18 @@ const CARD_LIST = [
     } },
 
   /* ---------------- タイタン（巨大化の軸：ランプ→高コスト） ---------------- */
-  { id: 'ti_seed', name: '大地の種', emoji: '🌰', tribe: 'titan', rarity: 'N', type: 'spell', cost: 1, target: 'none',
+  { id: 'ti_seed', name: '大地の種', emoji: '🌰', tribe: 'titan', rarity: 'N', type: 'spell', cost: 2, target: 'none',
     text: '最大PP+1（次のターンから増える）。カードを1枚引く', ai: { t: 'custom' },
     cast: async (B, pi) => { await B.rampPP(pi, 1); await B.draw(pi, 1); } },
-  { id: 'ti_golem', name: '鉱石ゴーレム', emoji: '🪨', tribe: 'titan', rarity: 'N', type: 'unit', cost: 3, atk: 20, hp: 50,
+  { id: 'ti_golem', name: '鉱石ゴーレム', emoji: '🪨', tribe: 'titan', rarity: 'N', type: 'unit', cost: 4, atk: 20, hp: 50,
     text: '登場時：最大PP+1', onPlay: async (B, u) => { await B.rampPP(u.owner, 1); } },
   { id: 'ti_awaken', name: '巨人の目覚め', emoji: '⛰️', tribe: 'titan', rarity: 'R', type: 'spell', cost: 1, target: 'none',
     text: 'このターン、手札のコスト6以上のカードのコスト-3。カードを1枚引く', ai: { t: 'custom' },
     cast: async (B, pi) => { B.P(pi).bigDiscount = (B.P(pi).bigDiscount || 0) + 3; await B.draw(pi, 1); B.V('sync'); } },
-  { id: 'ti_wyrm', name: '山岳の古竜', emoji: '🐉', tribe: 'titan', rarity: 'SR', type: 'unit', cost: 8, atk: 80, hp: 80,
+  { id: 'ti_wyrm', name: '山岳の古竜', emoji: '🐉', tribe: 'titan', rarity: 'SR', type: 'unit', cost: 6, atk: 80, hp: 80,
     text: '登場時：敵ユニット全員に30ダメージ',
     onPlay: async (B, u) => { await B.quake(); await B.damageMany(u, B.units(1 - u.owner), 30, { fx: 'quake' }); } },
-  { id: 'ti_titan', name: '原初の巨神タイタン', emoji: '🗽', tribe: 'titan', rarity: 'SSR', type: 'unit', cost: 10, atk: 120, hp: 120, kw: ['pierce'],
+  { id: 'ti_titan', name: '原初の巨神タイタン', emoji: '🗽', tribe: 'titan', rarity: 'SSR', type: 'unit', cost: 8, atk: 120, hp: 120, kw: ['pierce'],
     text: '登場時：敵ユニット全員を凍結',
     onPlay: async (B, u) => { await B.cutin(u, '大地が…目を覚ます'); await B.quake(); for (const e of B.units(1 - u.owner)) await B.freeze(e); } },
 
@@ -2831,11 +2831,11 @@ const CARD_LIST = [
   { id: 'sw_call', name: '群れの号令', emoji: '📯', tribe: 'swarm', rarity: 'R', type: 'spell', cost: 3, target: 'none',
     text: '空きマスすべてに「ちびスライム」（10/10）を出す', ai: { t: 'custom' },
     cast: async (B, pi) => { await B.summonTokens(pi, 'tk_slime', 5); } },
-  { id: 'sw_queen', name: '女王アリ', emoji: '🐜', tribe: 'swarm', rarity: 'SR', type: 'unit', cost: 5, atk: 30, hp: 50,
+  { id: 'sw_queen', name: '女王アリ', emoji: '🐜', tribe: 'swarm', rarity: 'SR', type: 'unit', cost: 5, atk: 30, hp: 70,
     text: '登場時と自分のターン開始時：空きマスに「兵隊アリ」（20/20）を1体出す',
     onPlay: async (B, u) => { await B.summonTokens(u.owner, 'tk_ant', 1, u.lane); },
     onTurnStart: async (B, u) => { await B.summonTokens(u.owner, 'tk_ant', 1, u.lane); } },
-  { id: 'sw_parade', name: '百鬼夜行', emoji: '🏮', tribe: 'swarm', rarity: 'SSR', type: 'unit', cost: 7, atk: 40, hp: 40,
+  { id: 'sw_parade', name: '百鬼夜行', emoji: '🏮', tribe: 'swarm', rarity: 'SSR', type: 'unit', cost: 6, atk: 20, hp: 20,
     text: '登場時：空きマスすべてに、ランダムなコスト2〜4のユニットを出す',
     onPlay: async (B, u) => {
       await B.cutin(u, '夜を埋め尽くせ！');
