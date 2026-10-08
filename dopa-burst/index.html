@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<!--BUILD:HEAD-->
+<title>ドーパミンBURST!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;700;800&family=Bungee&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<!--/BUILD:HEAD-->
+</head>
+<body>
+<!--BUILD:BODY-->
+<div id="app">
+  <canvas id="bgfx" aria-hidden="true"></canvas>
+  <main id="screens">
+    <section id="scr-title" class="screen"></section>
+    <section id="scr-home" class="screen" hidden></section>
+    <section id="scr-stages" class="screen" hidden></section>
+    <section id="scr-battle" class="screen" hidden></section>
+    <section id="scr-gacha" class="screen" hidden></section>
+    <section id="scr-deck" class="screen" hidden></section>
+    <section id="scr-dex" class="screen" hidden></section>
+    <section id="scr-missions" class="screen" hidden></section>
+    <section id="scr-settings" class="screen" hidden></section>
+    <section id="scr-shop" class="screen" hidden></section>
+    <section id="scr-rush" class="screen" hidden></section>
+  </main>
+  <div id="modal-root"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div id="fx-text" aria-hidden="true"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+</div>
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/cardview.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/stages.js"></script>
+<script src="js/bosses.js"></script>
+<script src="js/meta.js"></script>
+<script src="js/battle-ui.js"></script>
+<script src="js/screens.js"></script>
+<script src="js/main.js"></script>
+<!--/BUILD:BODY-->
+</body>
+</html>

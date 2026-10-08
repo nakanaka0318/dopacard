@@ -1,0 +1,46 @@
+// 敵のFEVER（ゲージ満タン表示 → 発動バナー → 追加でカードを出す）を確認する
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const fs = require('fs');
+const OUT = process.env.OUT || '/tmp/shots';
+fs.mkdirSync(OUT, { recursive: true });
+(async () => {
+  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-proxy-server'] });
+  const page = await (await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true })).newPage();
+  const errs = [];
+  page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.type() + ': ' + m.text()); });
+  page.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
+  const FD = process.env.FONTDIR;
+  await page.route(/fonts\.googleapis\.com/, r => FD ? r.fulfill({ contentType: 'text/css', body: fs.readFileSync(FD + '/fonts.css', 'utf8') }) : r.abort());
+  await page.route(/fonts\.gstatic\.com/, r => { try { r.fulfill({ contentType: 'font/woff2', body: fs.readFileSync(FD + '/' + r.request().url().replace('https://fonts.gstatic.com/', '').replace(/\//g, '_')) }); } catch (e) { r.abort(); } });
+  await page.goto('http://localhost:8765/index.html');
+  await page.waitForTimeout(500);
+  const snap = n => page.screenshot({ path: `${OUT}/ef-${n}.png` });
+  await page.evaluate(() => { Meta.save.flags.welcome = true; Meta.save.flags.tutorialDone = true; Meta.save.login.last = todayStr(); Meta.persist(); Game.enterHome(); });
+  await page.waitForTimeout(300);
+  await page.evaluate(() => { Settings.speed = 1; Time.speed = 1; Game.startStage('3-1'); });
+  await page.waitForTimeout(300);
+  await page.mouse.click(195, 400);
+  await page.waitForTimeout(2300);
+  await page.evaluate(() => {
+    const E = B.G.P[1];
+    E.fever = 99;
+    E.hand = ['b_dragon', 'n_ox', 'b_imp', 'n_dog'].map(id => ({ uid: B._uid++, id }));
+    E.maxEnergy = 4;
+    B.addFever(1, 5);
+  });
+  await page.waitForTimeout(900);
+  await snap('01-ready');
+  await page.evaluate(() => { const o = View.fever; View.fever = function (pi, on) { if (pi === 1 && on) window.__ef = true; return o.apply(this, arguments); }; BUI.endTurn(); });
+  await page.waitForFunction(() => window.__ef, null, { timeout: 30000 });
+  await page.waitForTimeout(350);
+  await snap('02-banner');
+  await page.waitForTimeout(1600);
+  await snap('03-on');
+  await page.waitForFunction(() => B.G.over || (!B.G.busy && B.G.active === 0), null, { timeout: 60000 });
+  await page.evaluate(() => BUI.toggleLog(true));
+  await page.waitForTimeout(300);
+  await snap('04-log');
+  console.log('enemy fevers:', await page.evaluate(() => B.G.stats[1].fevers));
+  console.log('ERRORS:', errs.length ? '\n' + errs.join('\n') : 'none');
+  await browser.close();
+})();
